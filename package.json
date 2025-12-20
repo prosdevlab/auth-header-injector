@@ -12,13 +12,7 @@
     "lint:fix": "biome check --write .",
     "format": "biome format --write ."
   },
-  "keywords": [
-    "chrome-extension",
-    "auth",
-    "headers",
-    "sdk-kit",
-    "developer-tools"
-  ],
+  "keywords": ["chrome-extension", "auth", "headers", "sdk-kit", "developer-tools"],
   "author": "ProsDevLab",
   "license": "MIT",
   "packageManager": "pnpm@10.14.0",
