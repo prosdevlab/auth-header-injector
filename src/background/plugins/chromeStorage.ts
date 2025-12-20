@@ -111,11 +111,7 @@ export interface ChromeStoragePlugin {
  * @param instance - SDK instance
  * @param _config - SDK configuration (unused)
  */
-export function chromeStoragePlugin(
-  plugin: Plugin,
-  instance: any,
-  _config: any,
-): void {
+export function chromeStoragePlugin(plugin: Plugin, instance: any, _config: any): void {
   // Set plugin namespace
   plugin.ns('storage');
 
@@ -260,4 +256,3 @@ export function chromeStoragePlugin(
     console.log('[Storage Plugin] Ready (using chrome.storage.sync)');
   });
 }
-

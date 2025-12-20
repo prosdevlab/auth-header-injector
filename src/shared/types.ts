@@ -48,4 +48,3 @@ export interface Response<T = unknown> {
   data?: T;
   error?: string;
 }
-

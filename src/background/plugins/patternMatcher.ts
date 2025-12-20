@@ -106,11 +106,7 @@ export interface PatternMatcherPlugin {
  * @param instance - SDK instance
  * @param _config - SDK configuration (unused)
  */
-export function patternMatcherPlugin(
-  plugin: Plugin,
-  instance: any,
-  _config: any,
-): void {
+export function patternMatcherPlugin(plugin: Plugin, instance: any, _config: any): void {
   // Set plugin namespace
   plugin.ns('matcher');
 
@@ -219,4 +215,3 @@ export function patternMatcherPlugin(
     console.log('[Pattern Matcher Plugin] Ready (Chrome urlFilter patterns)');
   });
 }
-
