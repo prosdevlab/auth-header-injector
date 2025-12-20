@@ -115,139 +115,141 @@ export function chromeStoragePlugin(plugin: Plugin, instance: any, _config: any)
   // Set plugin namespace
   plugin.ns('storage');
 
-  // Expose public API
+  // Expose public API under 'storage' namespace
   plugin.expose({
-    /**
-     * Get a value from storage
-     */
-    async get<T>(key: string): Promise<T | null> {
-      try {
-        const result = await chrome.storage.sync.get(key);
-        const value = result[key] ?? null;
+    storage: {
+      /**
+       * Get a value from storage
+       */
+      async get<T>(key: string): Promise<T | null> {
+        try {
+          const result = await chrome.storage.sync.get(key);
+          const value = result[key] ?? null;
 
-        // Emit event for observability
-        plugin.emit('storage:get', { key, found: value !== null });
+          // Emit event for observability
+          plugin.emit('storage:get', { key, found: value !== null });
 
-        return value as T | null;
-      } catch (error) {
-        // Emit error event
-        plugin.emit('storage:error', {
-          operation: 'get',
-          key,
-          error: error instanceof Error ? error.message : String(error),
-        });
+          return value as T | null;
+        } catch (error) {
+          // Emit error event
+          plugin.emit('storage:error', {
+            operation: 'get',
+            key,
+            error: error instanceof Error ? error.message : String(error),
+          });
 
-        // Log for debugging
-        console.error(`[Storage Plugin] Failed to get "${key}":`, error);
+          // Log for debugging
+          console.error(`[Storage Plugin] Failed to get "${key}":`, error);
 
-        // Throw so caller can handle
-        throw error;
-      }
-    },
+          // Throw so caller can handle
+          throw error;
+        }
+      },
 
-    /**
-     * Set a value in storage
-     */
-    async set<T>(key: string, value: T): Promise<void> {
-      try {
-        await chrome.storage.sync.set({ [key]: value });
+      /**
+       * Set a value in storage
+       */
+      async set<T>(key: string, value: T): Promise<void> {
+        try {
+          await chrome.storage.sync.set({ [key]: value });
 
-        // Emit event for observability
-        plugin.emit('storage:set', { key });
-      } catch (error) {
-        // Emit error event
-        plugin.emit('storage:error', {
-          operation: 'set',
-          key,
-          error: error instanceof Error ? error.message : String(error),
-        });
+          // Emit event for observability
+          plugin.emit('storage:set', { key });
+        } catch (error) {
+          // Emit error event
+          plugin.emit('storage:error', {
+            operation: 'set',
+            key,
+            error: error instanceof Error ? error.message : String(error),
+          });
 
-        // Log for debugging
-        console.error(`[Storage Plugin] Failed to set "${key}":`, error);
+          // Log for debugging
+          console.error(`[Storage Plugin] Failed to set "${key}":`, error);
 
-        // Throw so caller can handle
-        throw error;
-      }
-    },
+          // Throw so caller can handle
+          throw error;
+        }
+      },
 
-    /**
-     * Remove a value from storage
-     */
-    async remove(key: string): Promise<void> {
-      try {
-        await chrome.storage.sync.remove(key);
+      /**
+       * Remove a value from storage
+       */
+      async remove(key: string): Promise<void> {
+        try {
+          await chrome.storage.sync.remove(key);
 
-        // Emit event for observability
-        plugin.emit('storage:remove', { key });
-      } catch (error) {
-        // Emit error event
-        plugin.emit('storage:error', {
-          operation: 'remove',
-          key,
-          error: error instanceof Error ? error.message : String(error),
-        });
+          // Emit event for observability
+          plugin.emit('storage:remove', { key });
+        } catch (error) {
+          // Emit error event
+          plugin.emit('storage:error', {
+            operation: 'remove',
+            key,
+            error: error instanceof Error ? error.message : String(error),
+          });
 
-        // Log for debugging
-        console.error(`[Storage Plugin] Failed to remove "${key}":`, error);
+          // Log for debugging
+          console.error(`[Storage Plugin] Failed to remove "${key}":`, error);
 
-        // Throw so caller can handle
-        throw error;
-      }
-    },
+          // Throw so caller can handle
+          throw error;
+        }
+      },
 
-    /**
-     * Clear all storage
-     */
-    async clear(): Promise<void> {
-      try {
-        await chrome.storage.sync.clear();
+      /**
+       * Clear all storage
+       */
+      async clear(): Promise<void> {
+        try {
+          await chrome.storage.sync.clear();
 
-        // Emit event for observability
-        plugin.emit('storage:clear', {});
-      } catch (error) {
-        // Emit error event
-        plugin.emit('storage:error', {
-          operation: 'clear',
-          error: error instanceof Error ? error.message : String(error),
-        });
+          // Emit event for observability
+          plugin.emit('storage:clear', {});
+        } catch (error) {
+          // Emit error event
+          plugin.emit('storage:error', {
+            operation: 'clear',
+            error: error instanceof Error ? error.message : String(error),
+          });
 
-        // Log for debugging
-        console.error('[Storage Plugin] Failed to clear storage:', error);
+          // Log for debugging
+          console.error('[Storage Plugin] Failed to clear storage:', error);
 
-        // Throw so caller can handle
-        throw error;
-      }
-    },
+          // Throw so caller can handle
+          throw error;
+        }
+      },
 
-    /**
-     * Get all values from storage
-     */
-    async getAll(): Promise<Record<string, unknown>> {
-      try {
-        // Passing null gets all values
-        const result = await chrome.storage.sync.get(null);
+      /**
+       * Get all values from storage
+       */
+      async getAll(): Promise<Record<string, unknown>> {
+        try {
+          // Passing null gets all values
+          const result = await chrome.storage.sync.get(null);
 
-        // Emit event for observability
-        plugin.emit('storage:get', {
-          key: '*',
-          found: true,
-          count: Object.keys(result).length,
-        });
+          // Emit event for observability
+          plugin.emit('storage:get', {
+            key: '*',
+            found: true,
+            count: Object.keys(result).length,
+          });
 
-        return result;
-      } catch (error) {
-        // Emit error event
-        plugin.emit('storage:error', {
-          operation: 'getAll',
-          error: error instanceof Error ? error.message : String(error),
-        });
+          return result;
+        } catch (error) {
+          // Emit error event
+          plugin.emit('storage:error', {
+            operation: 'getAll',
+            error: error instanceof Error ? error.message : String(error),
+          });
 
-        // Log for debugging
-        console.error('[Storage Plugin] Failed to get all values:', error);
+          // Log for debugging
+          console.error('[Storage Plugin] Failed to get all values:', error);
 
-        // Throw so caller can handle
-        throw error;
-      }
+          // Throw so caller can handle
+          throw error;
+        }
+      },
     },
   });
 
