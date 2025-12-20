@@ -33,3 +33,6 @@ web-ext-artifacts/
 *.crx
 *.pem
 
+# Notes (discussion, research, planning)
+notes/
+
