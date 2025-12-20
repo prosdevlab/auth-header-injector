@@ -128,167 +128,167 @@ export function requestInterceptorPlugin(plugin: Plugin, instance: any, _config:
   // Note: plugin.require() is not yet implemented in SDK Kit
   // Will be added when needed for plugin dependencies
 
-  // Expose public API
+  // Expose public API under 'interceptor' namespace
   plugin.expose({
-    /**
-     * Enable interceptor (apply rules)
-     */
-    async enable(): Promise<void> {
-      try {
-        // Get auth rules from storage
-        const authRules: AuthRule[] = (await instance.storage.get('auth_rules')) || [];
+    interceptor: {
+      /**
+       * Enable interceptor (apply rules)
+       */
+      async enable(): Promise<void> {
+        try {
+          // Get auth rules from storage
+          const authRules: AuthRule[] = (await instance.storage.get('auth_rules')) || [];
 
-        // Filter to only enabled rules
-        const enabledRules = authRules.filter((rule) => rule.enabled);
+          // Filter to only enabled rules
+          const enabledRules = authRules.filter((rule) => rule.enabled);
 
-        // Check rule limit
-        if (enabledRules.length > 300) {
-          plugin.emit('interceptor:limit-reached', {
-            count: enabledRules.length,
-            limit: 300,
+          // Check rule limit
+          if (enabledRules.length > 300) {
+            plugin.emit('interceptor:limit-reached', {
+              count: enabledRules.length,
+              limit: 300,
+            });
+            throw new Error(
+              `Too many rules (${enabledRules.length}/300). Chrome's declarativeNetRequest has a 300 rule limit.`,
+            );
+          }
+
+          // Convert auth rules to Chrome rules
+          const chromeRules = enabledRules.map((authRule, index) => ({
+            id: index + 1, // Chrome IDs are 1-based
+            priority: 1, // All rules same priority
+            action: {
+              type: 'modifyHeaders' as chrome.declarativeNetRequest.RuleActionType.MODIFY_HEADERS,
+              requestHeaders: [
+                {
+                  header: 'Authorization',
+                  operation: chrome.declarativeNetRequest.HeaderOperation.SET,
+                  value: `Bearer ${authRule.token}`,
+                },
+              ],
+            },
+            condition: {
+              urlFilter: authRule.pattern,
+              resourceTypes: [chrome.declarativeNetRequest.ResourceType.XMLHTTPREQUEST],
+            },
+          }));
+
+          // Get existing rule IDs to remove
+          const existingRules = await chrome.declarativeNetRequest.getDynamicRules();
+          const existingRuleIds = existingRules.map((rule) => rule.id);
+
+          // Update Chrome rules (atomic operation)
+          await chrome.declarativeNetRequest.updateDynamicRules({
+            removeRuleIds: existingRuleIds, // Remove all old rules
+            addRules: chromeRules, // Add new rules
           });
-          throw new Error(
-            `Too many rules (${enabledRules.length}/300). Chrome's declarativeNetRequest has a 300 rule limit.`,
-          );
+
+          // Emit success event
+          plugin.emit('interceptor:enabled', {
+            ruleCount: chromeRules.length,
+          });
+
+          console.log(`[Request Interceptor] Enabled with ${chromeRules.length} rule(s)`);
+        } catch (error) {
+          // Emit error event
+          plugin.emit('interceptor:error', {
+            operation: 'enable',
+            error: error instanceof Error ? error.message : String(error),
+          });
+
+          // Log for debugging
+          console.error('[Request Interceptor] Failed to enable:', error);
+
+          // Re-throw so caller can handle
+          throw error;
         }
+      },
 
-        // Convert auth rules to Chrome rules
-        const chromeRules = enabledRules.map((authRule, index) => ({
-          id: index + 1, // Chrome IDs are 1-based
-          priority: 1, // All rules same priority
-          action: {
-            type: 'modifyHeaders' as chrome.declarativeNetRequest.RuleActionType.MODIFY_HEADERS,
-            requestHeaders: [
-              {
-                header: 'Authorization',
-                operation: chrome.declarativeNetRequest.HeaderOperation.SET,
-                value: `Bearer ${authRule.token}`,
-              },
-            ],
-          },
-          condition: {
-            urlFilter: authRule.pattern,
-            resourceTypes: [chrome.declarativeNetRequest.ResourceType.XMLHTTPREQUEST],
-          },
-        }));
+      /**
+       * Disable interceptor (remove all rules)
+       */
+      async disable(): Promise<void> {
+        try {
+          // Get all current rules
+          const rules = await chrome.declarativeNetRequest.getDynamicRules();
+          const ruleIds = rules.map((rule) => rule.id);
 
-        // Get existing rule IDs to remove
-        const existingRules = await chrome.declarativeNetRequest.getDynamicRules();
-        const existingRuleIds = existingRules.map((rule) => rule.id);
-
-        // Update Chrome rules (atomic operation)
-        await chrome.declarativeNetRequest.updateDynamicRules({
-          removeRuleIds: existingRuleIds, // Remove all old rules
-          addRules: chromeRules, // Add new rules
-        });
-
-        // Emit success event
-        plugin.emit('interceptor:enabled', {
-          ruleCount: chromeRules.length,
-        });
-
-        console.log(`[Request Interceptor] Enabled with ${chromeRules.length} rule(s)`);
-      } catch (error) {
-        // Emit error event
-        plugin.emit('interceptor:error', {
-          operation: 'enable',
-          error: error instanceof Error ? error.message : String(error),
-        });
-
-        // Log for debugging
-        console.error('[Request Interceptor] Failed to enable:', error);
-
-        // Re-throw so caller can handle
-        throw error;
-      }
-    },
-
-    /**
-     * Disable interceptor (remove all rules)
-     */
-    async disable(): Promise<void> {
-      try {
-        // Get all current rules
-        const rules = await chrome.declarativeNetRequest.getDynamicRules();
-        const ruleIds = rules.map((rule) => rule.id);
-
-        // Remove all rules
-        if (ruleIds.length > 0) {
+          // Remove all rules (call even if empty for consistency)
           await chrome.declarativeNetRequest.updateDynamicRules({
             removeRuleIds: ruleIds,
           });
+
+          // Emit success event
+          plugin.emit('interceptor:disabled', {
+            removedCount: ruleIds.length,
+          });
+
+          console.log(`[Request Interceptor] Disabled (removed ${ruleIds.length} rule(s))`);
+        } catch (error) {
+          // Emit error event
+          plugin.emit('interceptor:error', {
+            operation: 'disable',
+            error: error instanceof Error ? error.message : String(error),
+          });
+
+          // Log for debugging
+          console.error('[Request Interceptor] Failed to disable:', error);
+
+          // Re-throw so caller can handle
+          throw error;
         }
+      },
 
-        // Emit success event
-        plugin.emit('interceptor:disabled', {
-          removedCount: ruleIds.length,
-        });
+      /**
+       * Update rules from storage
+       */
+      async updateRules(): Promise<void> {
+        try {
+          // Disable first (clears all rules)
+          await this.disable();
 
-        console.log(`[Request Interceptor] Disabled (removed ${ruleIds.length} rule(s))`);
-      } catch (error) {
-        // Emit error event
-        plugin.emit('interceptor:error', {
-          operation: 'disable',
-          error: error instanceof Error ? error.message : String(error),
-        });
+          // Re-enable (applies current rules from storage)
+          await this.enable();
 
-        // Log for debugging
-        console.error('[Request Interceptor] Failed to disable:', error);
+          // Emit update event
+          plugin.emit('interceptor:rules-updated', {});
 
-        // Re-throw so caller can handle
-        throw error;
-      }
-    },
+          console.log('[Request Interceptor] Rules updated');
+        } catch (error) {
+          // Emit error event
+          plugin.emit('interceptor:error', {
+            operation: 'updateRules',
+            error: error instanceof Error ? error.message : String(error),
+          });
 
-    /**
-     * Update rules from storage
-     */
-    async updateRules(): Promise<void> {
-      try {
-        // Disable first (clears all rules)
-        await this.disable();
+          // Log for debugging
+          console.error('[Request Interceptor] Failed to update rules:', error);
 
-        // Re-enable (applies current rules from storage)
-        await this.enable();
+          // Re-throw so caller can handle
+          throw error;
+        }
+      },
 
-        // Emit update event
-        plugin.emit('interceptor:rules-updated', {});
+      /**
+       * Get current rule count
+       */
+      async getRuleCount(): Promise<number> {
+        try {
+          const rules = await chrome.declarativeNetRequest.getDynamicRules();
+          return rules.length;
+        } catch (error) {
+          console.error('[Request Interceptor] Failed to get rule count:', error);
+          return 0;
+        }
+      },
 
-        console.log('[Request Interceptor] Rules updated');
-      } catch (error) {
-        // Emit error event
-        plugin.emit('interceptor:error', {
-          operation: 'updateRules',
-          error: error instanceof Error ? error.message : String(error),
-        });
-
-        // Log for debugging
-        console.error('[Request Interceptor] Failed to update rules:', error);
-
-        // Re-throw so caller can handle
-        throw error;
-      }
-    },
-
-    /**
-     * Get current rule count
-     */
-    async getRuleCount(): Promise<number> {
-      try {
-        const rules = await chrome.declarativeNetRequest.getDynamicRules();
-        return rules.length;
-      } catch (error) {
-        console.error('[Request Interceptor] Failed to get rule count:', error);
-        return 0;
-      }
-    },
-
-    /**
-     * Check if at rule limit
-     */
-    async isAtLimit(): Promise<boolean> {
-      const count = await this.getRuleCount();
-      return count >= 300;
+      /**
+       * Check if at rule limit
+       */
+      async isAtLimit(): Promise<boolean> {
+        const count = await this.getRuleCount();
+        return count >= 300;
+      },
     },
   });
 

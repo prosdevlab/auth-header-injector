@@ -110,103 +110,105 @@ export function patternMatcherPlugin(plugin: Plugin, instance: any, _config: any
   // Set plugin namespace
   plugin.ns('matcher');
 
-  // Expose public API
+  // Expose public API under 'matcher' namespace
   plugin.expose({
-    /**
-     * Check if URL matches pattern
-     *
-     * Uses simple substring/wildcard matching for utility purposes.
-     * Chrome's declarativeNetRequest does the actual matching in production.
-     */
-    matches(url: string, pattern: string): boolean {
-      // Validate pattern first
-      if (!this.validate(pattern)) {
-        plugin.emit('matcher:invalid-pattern', { pattern });
-        return false;
-      }
-
-      // Normalize to lowercase (Chrome is case-insensitive)
-      const normalizedUrl = url.toLowerCase();
-      const normalizedPattern = pattern.toLowerCase();
-
-      // Simple wildcard matching for utility purposes
-      // Chrome's declarativeNetRequest does more sophisticated matching
-      let matched = false;
-
-      if (normalizedPattern.includes('*')) {
-        // Convert wildcard pattern to regex
-        // Replace * with .* (match any characters)
-        // Escape special regex characters except *
-        const regexPattern = normalizedPattern
-          .replace(/[.+?^${}()|[\]\\]/g, '\\$&') // Escape special chars
-          .replace(/\*/g, '.*'); // Convert * to .*
-
-        const regex = new RegExp(regexPattern);
-        matched = regex.test(normalizedUrl);
-      } else {
-        // Simple substring match
-        matched = normalizedUrl.includes(normalizedPattern);
-      }
-
-      // Emit event
-      if (matched) {
-        plugin.emit('matcher:matches', { url, pattern });
-      } else {
-        plugin.emit('matcher:no-match', { url, pattern });
-      }
-
-      return matched;
-    },
-
-    /**
-     * Check if URL matches any pattern
-     */
-    matchesAny(url: string, patterns: string[]): boolean {
-      // Check each pattern
-      for (const pattern of patterns) {
-        if (this.matches(url, pattern)) {
-          return true;
+    matcher: {
+      /**
+       * Check if URL matches pattern
+       *
+       * Uses simple substring/wildcard matching for utility purposes.
+       * Chrome's declarativeNetRequest does the actual matching in production.
+       */
+      matches(url: string, pattern: string): boolean {
+        // Validate pattern first
+        if (!this.validate(pattern)) {
+          plugin.emit('matcher:invalid-pattern', { pattern });
+          return false;
         }
-      }
 
-      // No patterns matched
-      plugin.emit('matcher:no-match', { url, patterns });
-      return false;
-    },
+        // Normalize to lowercase (Chrome is case-insensitive)
+        const normalizedUrl = url.toLowerCase();
+        const normalizedPattern = pattern.toLowerCase();
 
-    /**
-     * Validate a pattern
-     */
-    validate(pattern: string): boolean {
-      // Reject empty or whitespace-only patterns
-      if (!pattern || pattern.trim().length === 0) {
-        plugin.emit('matcher:invalid-pattern', {
-          pattern,
-          reason: 'empty or whitespace',
-        });
+        // Simple wildcard matching for utility purposes
+        // Chrome's declarativeNetRequest does more sophisticated matching
+        let matched = false;
+
+        if (normalizedPattern.includes('*')) {
+          // Convert wildcard pattern to regex
+          // Replace * with .* (match any characters)
+          // Escape special regex characters except *
+          const regexPattern = normalizedPattern
+            .replace(/[.+?^${}()|[\]\\]/g, '\\$&') // Escape special chars
+            .replace(/\*/g, '.*'); // Convert * to .*
+
+          const regex = new RegExp(regexPattern);
+          matched = regex.test(normalizedUrl);
+        } else {
+          // Simple substring match
+          matched = normalizedUrl.includes(normalizedPattern);
+        }
+
+        // Emit event
+        if (matched) {
+          plugin.emit('matcher:matches', { url, pattern });
+        } else {
+          plugin.emit('matcher:no-match', { url, pattern });
+        }
+
+        return matched;
+      },
+
+      /**
+       * Check if URL matches any pattern
+       */
+      matchesAny(url: string, patterns: string[]): boolean {
+        // Check each pattern
+        for (const pattern of patterns) {
+          if (this.matches(url, pattern)) {
+            return true;
+          }
+        }
+
+        // No patterns matched
+        plugin.emit('matcher:no-match', { url, patterns });
         return false;
-      }
+      },
 
-      // Warn about very short patterns (potential typos)
-      if (pattern.trim().length < 2) {
-        plugin.emit('matcher:invalid-pattern', {
-          pattern,
-          reason: 'too short (potential typo)',
-        });
-        return false;
-      }
+      /**
+       * Validate a pattern
+       */
+      validate(pattern: string): boolean {
+        // Reject empty or whitespace-only patterns
+        if (!pattern || pattern.trim().length === 0) {
+          plugin.emit('matcher:invalid-pattern', {
+            pattern,
+            reason: 'empty or whitespace',
+          });
+          return false;
+        }
 
-      // Warn about only wildcards (matches everything)
-      if (pattern.trim().replace(/\*/g, '').length === 0) {
-        plugin.emit('matcher:invalid-pattern', {
-          pattern,
-          reason: 'only wildcards (matches everything)',
-        });
-        return false;
-      }
+        // Warn about very short patterns (potential typos)
+        if (pattern.trim().length < 2) {
+          plugin.emit('matcher:invalid-pattern', {
+            pattern,
+            reason: 'too short (potential typo)',
+          });
+          return false;
+        }
 
-      // Pattern is valid
-      return true;
+        // Warn about only wildcards (matches everything)
+        if (pattern.trim().replace(/\*/g, '').length === 0) {
+          plugin.emit('matcher:invalid-pattern', {
+            pattern,
+            reason: 'only wildcards (matches everything)',
+          });
+          return false;
+        }
+
+        // Pattern is valid
+        return true;
+      },
     },
   });
 

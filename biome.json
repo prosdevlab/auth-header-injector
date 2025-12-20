@@ -28,6 +28,9 @@
       "style": {
         "useNodejsImportProtocol": "error",
         "useTemplate": "error"
+      },
+      "suspicious": {
+        "noExplicitAny": "off"
       }
     }
   },
