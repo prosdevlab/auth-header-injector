@@ -23,7 +23,7 @@
   "license": "MIT",
   "packageManager": "pnpm@10.14.0",
   "dependencies": {
-    "@lytics/sdk-kit": "workspace:*",
+    "@lytics/sdk-kit": "link:../sdk-kit/packages/core",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
