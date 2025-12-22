@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Purple-themed light mode */
+    --background: 270 20% 98%;
+    --foreground: 270 15% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 270 15% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 270 15% 10%;
+    --primary: 270 70% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 270 30% 95%;
+    --secondary-foreground: 270 15% 10%;
+    --muted: 270 20% 96%;
+    --muted-foreground: 270 10% 45%;
+    --accent: 280 60% 50%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 270 20% 88%;
+    --input: 270 20% 88%;
+    --ring: 270 70% 55%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Dark mode with purple accents */
+    --background: 220 13% 9%; /* Deep neutral gray-blue (like Chrome dark) */
+    --foreground: 0 0% 95%; /* Pure white-ish */
+    --card: 220 13% 13%; /* Slightly lighter gray card */
+    --card-foreground: 0 0% 95%; /* Pure white-ish */
+    --popover: 220 13% 13%; /* Match card */
+    --popover-foreground: 0 0% 95%; /* Pure white-ish */
+    --primary: 270 70% 60%; /* Bright purple (your brand) */
+    --primary-foreground: 0 0% 100%; /* Pure white on purple */
+    --secondary: 220 13% 18%; /* Subtle gray for secondary elements */
+    --secondary-foreground: 0 0% 90%; /* Light gray text */
+    --muted: 220 13% 18%; /* Match secondary */
+    --muted-foreground: 0 0% 60%; /* Medium gray (like Chrome muted text) */
+    --accent: 270 70% 60%; /* Purple accent (matches primary) */
+    --accent-foreground: 0 0% 100%; /* Pure white */
+    --destructive: 0 63% 55%; /* Red for destructive actions */
+    --destructive-foreground: 0 0% 98%; /* White on red */
+    --border: 220 13% 24%; /* Subtle border (lighter than bg) */
+    --input: 220 13% 24%; /* Match border */
+    --ring: 270 70% 60%; /* Purple focus ring */
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+}
