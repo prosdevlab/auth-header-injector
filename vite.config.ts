@@ -15,8 +15,16 @@ export default defineConfig({
       '@': resolve(__dirname, 'src'),
     },
   },
+  publicDir: 'src/icons',
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        // Use relative paths for assets
+        assetFileNames: '[name].[ext]',
+      },
+    },
   },
+  base: './', // Use relative paths
 });

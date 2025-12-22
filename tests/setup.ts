@@ -5,6 +5,14 @@
 
 import { vi } from 'vitest';
 
+// Suppress console output in tests to reduce noise from expected errors
+global.console = {
+  ...console,
+  log: vi.fn(),
+  error: vi.fn(),
+  warn: vi.fn(),
+};
+
 // Mock chrome.storage.sync with proper types
 // Note: We cast to `any` to override @types/chrome's strict callback signatures
 // In tests, we use promise-based mocks for simplicity
@@ -15,6 +23,17 @@ global.chrome = {
       set: vi.fn().mockResolvedValue(undefined) as any,
       remove: vi.fn().mockResolvedValue(undefined) as any,
       clear: vi.fn().mockResolvedValue(undefined) as any,
+    },
+    local: {
+      get: vi.fn().mockResolvedValue({}) as any,
+      set: vi.fn().mockResolvedValue(undefined) as any,
+      remove: vi.fn().mockResolvedValue(undefined) as any,
+      clear: vi.fn().mockResolvedValue(undefined) as any,
+    },
+    onChanged: {
+      addListener: vi.fn() as any,
+      removeListener: vi.fn() as any,
+      hasListener: vi.fn().mockReturnValue(false) as any,
     },
   },
   declarativeNetRequest: {

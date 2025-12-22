@@ -9,6 +9,7 @@ export interface AuthRule {
   id: string;
   pattern: string;
   token: string;
+  label?: string; // Optional friendly name like "Staging API" or "GitHub Dev"
   enabled: boolean;
   createdAt: number;
   updatedAt: number;
