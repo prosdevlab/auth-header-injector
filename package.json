@@ -17,7 +17,13 @@
     "prepare": "husky",
     "lint-staged": "biome check --write --no-errors-on-unmatched"
   },
-  "keywords": ["chrome-extension", "auth", "headers", "sdk-kit", "developer-tools"],
+  "keywords": [
+    "chrome-extension",
+    "auth",
+    "headers",
+    "sdk-kit",
+    "developer-tools"
+  ],
   "author": "ProsDevLab",
   "license": "MIT",
   "packageManager": "pnpm@10.14.0",
@@ -30,6 +36,7 @@
     "@radix-ui/react-switch": "^1.2.6",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
     "lucide-react": "^0.562.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
