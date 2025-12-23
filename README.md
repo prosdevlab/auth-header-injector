@@ -2,8 +2,10 @@
 
 A Chrome extension that automatically injects authentication headers into HTTP requests based on URL patterns. Built for developers who need to test APIs with different auth tokens across multiple environments.
 
+[![CI](https://github.com/prosdevlab/auth-header-injector/actions/workflows/ci.yml/badge.svg)](https://github.com/prosdevlab/auth-header-injector/actions/workflows/ci.yml)
 ![Chrome Version](https://img.shields.io/badge/chrome-v114+-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
+[![SDK Kit](https://img.shields.io/badge/built_with-SDK_Kit-purple)](https://github.com/lytics/sdk-kit)
 
 ## Features
 
@@ -16,11 +18,17 @@ A Chrome extension that automatically injects authentication headers into HTTP r
 
 ## Installation
 
+### From Chrome Web Store
+
+> 🚀 **Coming Soon** - Extension is currently in review for Chrome Web Store
+
+Once published, you'll be able to install directly from the Chrome Web Store.
+
 ### From Source
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/auth-header-injector.git
+   git clone https://github.com/prosdevlab/auth-header-injector.git
    cd auth-header-injector
    ```
 
@@ -183,6 +191,33 @@ src/
 - ✅ **Batched writes** - Stats written every 3s, reduces I/O by ~90%
 - ✅ **Request debouncing** - Duplicate requests ignored for 1s
 - ✅ **Event-driven UI** - Updates via `chrome.storage.onChanged`, no polling
+
+## Security & Privacy
+
+### Data Storage
+
+- **All data is stored locally** on your device using Chrome's sync storage
+- **No external servers** - No data is transmitted to any third-party services
+- **No analytics or tracking** - We don't collect any usage data
+- **Open source** - Full code transparency for security auditing
+
+### Token Security
+
+- Tokens are stored in Chrome's encrypted sync storage
+- Never logged or transmitted except to your configured domains
+- Visible only when you explicitly choose to show them
+- Synced securely across your Chrome instances (if Chrome sync is enabled)
+
+### Permissions Explained
+
+We require these permissions for core functionality:
+
+- `declarativeNetRequest` - Inject authentication headers into matching requests
+- `storage` - Store your rules and tokens locally
+- `tabs` - Detect current page URL for context-aware UI
+- `sidePanel` - Display the extension interface
+- `webRequest` - Track request statistics (counts only, no content)
+- `host_permissions (<all_urls>)` - Allow header injection on domains you configure
 
 ## API & Permissions
 
@@ -377,9 +412,15 @@ We use [Conventional Commits](https://www.conventionalcommits.org/):
 
 MIT License - see [LICENSE](LICENSE) for details
 
+## Support
+
+- **Issues:** [GitHub Issues](https://github.com/prosdevlab/auth-header-injector/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/prosdevlab/auth-header-injector/discussions)
+- **Repository:** [github.com/prosdevlab/auth-header-injector](https://github.com/prosdevlab/auth-header-injector)
+
 ## Acknowledgments
 
-- [SDK Kit](https://github.com/yourusername/sdk-kit) - Plugin architecture
+- [SDK Kit](https://github.com/lytics/sdk-kit) - Plugin architecture for Chrome extensions
 - [Shadcn UI](https://ui.shadcn.com/) - Component library
 - [Lucide Icons](https://lucide.dev/) - Icon set
 - [Chrome Extensions Docs](https://developer.chrome.com/docs/extensions/) - API reference
@@ -387,4 +428,6 @@ MIT License - see [LICENSE](LICENSE) for details
 ---
 
 **Built with ❤️ for developers who live in the browser**
+
+**Free & Open Source** • MIT License • [ProsDevLab](https://github.com/prosdevlab)
 
