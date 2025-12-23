@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import type { AuthRule } from '@/shared/types';
-import { Play, Plus, Shield, ShieldOff } from 'lucide-react';
+import { ChevronDown, ChevronRight, Play, Plus, Shield, ShieldOff } from 'lucide-react';
+import { useState } from 'react';
 import { RuleCard } from './RuleCard';
 
 interface RulesListProps {
@@ -34,6 +35,8 @@ export function RulesList({
   onToggleRule,
   onCopyToken,
 }: RulesListProps) {
+  const [isOtherRulesExpanded, setIsOtherRulesExpanded] = useState(false);
+
   const hasRules = rules.length > 0;
   const hasMatches = matchedRules.length > 0;
   const otherRules = rules.filter((rule) => !matchedRules.some((m) => m.id === rule.id));
@@ -141,13 +144,13 @@ export function RulesList({
         </Button>
       </div>
 
-      {/* Active Rules Section (rules intercepting requests) */}
+      {/* Active Rules Section - Rules matching current page */}
       {hasMatches && (
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Play className="h-3.5 w-3.5 text-primary fill-primary" />
             <p className="text-xs font-semibold uppercase text-primary">
-              Active ({matchedRules.length})
+              For This Page ({matchedRules.length})
             </p>
           </div>
           {matchedRules.map((rule) => (
@@ -164,23 +167,35 @@ export function RulesList({
         </div>
       )}
 
-      {/* Other Rules Section */}
+      {/* Other Rules Section - Collapsed by default */}
       {otherRules.length > 0 && (
         <div className="space-y-3">
-          <p className="text-xs font-semibold uppercase text-muted-foreground">
-            Other Rules ({otherRules.length})
-          </p>
-          {otherRules.map((rule) => (
-            <RuleCard
-              key={rule.id}
-              rule={rule}
-              isMatched={false}
-              onToggle={(enabled) => onToggleRule(rule.id, enabled)}
-              onEdit={() => onEditRule(rule)}
-              onDelete={() => onDeleteRule(rule.id)}
-              onCopyToken={() => onCopyToken(rule.token)}
-            />
-          ))}
+          <button
+            type="button"
+            onClick={() => setIsOtherRulesExpanded(!isOtherRulesExpanded)}
+            className="flex items-center gap-2 w-full hover:opacity-70 transition-opacity"
+          >
+            {isOtherRulesExpanded ? (
+              <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+            ) : (
+              <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+            )}
+            <p className="text-xs font-semibold uppercase text-muted-foreground">
+              Other Rules ({otherRules.length})
+            </p>
+          </button>
+          {isOtherRulesExpanded &&
+            otherRules.map((rule) => (
+              <RuleCard
+                key={rule.id}
+                rule={rule}
+                isMatched={false}
+                onToggle={(enabled) => onToggleRule(rule.id, enabled)}
+                onEdit={() => onEditRule(rule)}
+                onDelete={() => onDeleteRule(rule.id)}
+                onCopyToken={() => onCopyToken(rule.token)}
+              />
+            ))}
         </div>
       )}
     </div>

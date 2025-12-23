@@ -1,13 +1,10 @@
-import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import type { AuthRule } from '@/shared/types';
-import { Settings } from 'lucide-react';
 import { useState } from 'react';
 import { ContextBar } from './components/ContextBar';
 import { RuleForm } from './components/RuleForm';
 import { RulesList } from './components/RulesList';
-import { SettingsDialog } from './components/SettingsDialog';
 import { useAuthRules } from './hooks/useAuthRules';
 import { useCurrentTab } from './hooks/useCurrentTab';
 import { useExtensionEnabled } from './hooks/useExtensionEnabled';
@@ -17,11 +14,15 @@ export function App() {
   const { rules, loading: rulesLoading, addRule, updateRule, deleteRule } = useAuthRules();
   const { isEnabled, loading: enabledLoading, setEnabled } = useExtensionEnabled();
   const { tab, loading: tabLoading } = useCurrentTab();
-  const { getActiveRuleIds, getCountForRules, loading: statsLoading } = useRequestStats();
+  const {
+    getActiveRuleIds,
+    getCountForRules,
+    getLastSeenForRules,
+    loading: statsLoading,
+  } = useRequestStats();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<AuthRule | null>(null);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const loading = rulesLoading || enabledLoading || tabLoading || statsLoading;
 
@@ -62,9 +63,10 @@ export function App() {
   const activeRuleIds = getActiveRuleIds();
   const activeDisplayRules = relevantRules.filter((rule) => activeRuleIds.has(rule.id));
 
-  // Get request count for relevant rules only
+  // Get request count and timestamp for relevant rules
   const relevantPatterns = relevantRules.map((r) => r.pattern);
   const pageRequestCount = getCountForRules(relevantPatterns);
+  const lastSeenTimestamp = getLastSeenForRules(relevantPatterns);
 
   // Handlers
   const handleAddRule = async (rule: Omit<AuthRule, 'id' | 'createdAt' | 'updatedAt'>) => {
@@ -104,17 +106,16 @@ export function App() {
               disabled={loading}
             />
           </div>
-          <Button variant="ghost" size="icon" onClick={() => setIsSettingsOpen(true)}>
-            <Settings className="h-5 w-5" />
-          </Button>
         </div>
       </div>
 
-      {/* Context Bar (Sticky) - Shows active rules for current page's domain */}
+      {/* Context Bar (Sticky) - Shows active rules for current page */}
       <ContextBar
         tab={tab}
-        matchCount={activeDisplayRules.length}
+        matchCount={relevantRules.length}
         requestCount={pageRequestCount}
+        lastSeen={lastSeenTimestamp}
+        isEnabled={isEnabled}
         loading={loading}
       />
 
@@ -158,9 +159,6 @@ export function App() {
           title="Edit Auth Rule"
         />
       )}
-
-      {/* Settings Dialog */}
-      <SettingsDialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
     </div>
   );
 }

@@ -120,6 +120,36 @@ export function useRequestStats() {
   };
 
   /**
+   * Get the most recent lastSeen timestamp for domains matching the given rule patterns
+   * Used to show "last seen" time in the context bar
+   */
+  const getLastSeenForRules = (rulePatterns: string[]): number | null => {
+    if (rulePatterns.length === 0) return null;
+
+    // Helper to check if a domain matches a rule pattern (reuse same logic)
+    const domainMatchesPattern = (domain: string, pattern: string): boolean => {
+      let domainPattern = pattern;
+      const urlMatch = pattern.match(/^(?:\*|https?):\/\/([^/]+)/);
+      if (urlMatch?.[1]) {
+        domainPattern = urlMatch[1];
+      }
+      const regexPattern = domainPattern.replace(/\./g, '\\.').replace(/\*/g, '.*');
+      const regex = new RegExp(`^${regexPattern}$`);
+      return regex.test(domain);
+    };
+
+    // Find the most recent lastSeen timestamp
+    let mostRecent: number | null = null;
+    for (const [domain, stat] of Object.entries(stats)) {
+      const matchesAnyRule = rulePatterns.some((pattern) => domainMatchesPattern(domain, pattern));
+      if (matchesAnyRule && (mostRecent === null || stat.lastSeen > mostRecent)) {
+        mostRecent = stat.lastSeen;
+      }
+    }
+    return mostRecent;
+  };
+
+  /**
    * Clear all request statistics
    */
   const clearStats = async (): Promise<void> => {
@@ -139,6 +169,7 @@ export function useRequestStats() {
     getTotalCount,
     getActiveRuleIds,
     getCountForRules,
+    getLastSeenForRules,
     clearStats,
   };
 }
