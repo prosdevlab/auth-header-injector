@@ -63,7 +63,7 @@ describe('Request Interceptor Plugin', () => {
             },
             condition: {
               urlFilter: '*.example.com',
-              resourceTypes: ['xmlhttprequest'],
+              resourceTypes: ['xmlhttprequest', 'other'],
             },
           },
           {
@@ -81,7 +81,7 @@ describe('Request Interceptor Plugin', () => {
             },
             condition: {
               urlFilter: 'api.test.com',
-              resourceTypes: ['xmlhttprequest'],
+              resourceTypes: ['xmlhttprequest', 'other'],
             },
           },
         ],

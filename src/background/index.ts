@@ -149,7 +149,13 @@ chrome.webRequest.onBeforeRequest.addListener(
       }
     })();
   },
-  { urls: ['<all_urls>'], types: ['xmlhttprequest'] },
+  {
+    urls: ['<all_urls>'],
+    types: [
+      'xmlhttprequest', // Old-school XMLHttpRequest
+      'other', // Modern fetch() API calls
+    ],
+  },
 );
 
 // Handle extension icon click → Open side panel

@@ -28,26 +28,26 @@
   }
 
   .dark {
-    /* Dark mode with purple accents */
+    /* Dark mode with muted indigo accents (professional with character) */
     --background: 220 13% 9%; /* Deep neutral gray-blue (like Chrome dark) */
     --foreground: 0 0% 95%; /* Pure white-ish */
     --card: 220 13% 13%; /* Slightly lighter gray card */
     --card-foreground: 0 0% 95%; /* Pure white-ish */
     --popover: 220 13% 13%; /* Match card */
     --popover-foreground: 0 0% 95%; /* Pure white-ish */
-    --primary: 270 70% 60%; /* Bright purple (your brand) */
-    --primary-foreground: 0 0% 100%; /* Pure white on purple */
+    --primary: 250 50% 55%; /* Muted indigo/purple (lower saturation) */
+    --primary-foreground: 0 0% 100%; /* Pure white on indigo */
     --secondary: 220 13% 18%; /* Subtle gray for secondary elements */
     --secondary-foreground: 0 0% 90%; /* Light gray text */
     --muted: 220 13% 18%; /* Match secondary */
     --muted-foreground: 0 0% 60%; /* Medium gray (like Chrome muted text) */
-    --accent: 270 70% 60%; /* Purple accent (matches primary) */
+    --accent: 250 50% 50%; /* Slightly darker indigo accent */
     --accent-foreground: 0 0% 100%; /* Pure white */
     --destructive: 0 63% 55%; /* Red for destructive actions */
     --destructive-foreground: 0 0% 98%; /* White on red */
     --border: 220 13% 24%; /* Subtle border (lighter than bg) */
     --input: 220 13% 24%; /* Match border */
-    --ring: 270 70% 60%; /* Purple focus ring */
+    --ring: 250 50% 55%; /* Muted indigo focus ring */
   }
 }
 
