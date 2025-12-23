@@ -1,0 +1,115 @@
+# Privacy Policy
+
+**Last Updated:** December 23, 2025
+
+## Data Collection
+
+Auth HI! does **NOT** collect, transmit, or share any user data.
+
+## Data Storage
+
+All data (authentication rules and tokens) is stored locally on your device using Chrome's sync storage.
+
+This data:
+- **Never leaves your device** except through Chrome's built-in sync (if you enable Chrome sync)
+- **Is NOT transmitted** to any external servers
+- **Is NOT accessible** to the extension developers
+- **Syncs only through Chrome's native sync** (if enabled in your Chrome settings)
+
+## What We Store
+
+### Locally on Your Device
+
+- **Authentication rules**: URL patterns, tokens, labels, and enabled/disabled state
+- **Request statistics**: Domain-level request counts and timestamps (no request content)
+
+### What We DON'T Store
+
+- Request URLs
+- Request/response bodies
+- Request headers (except what you configure)
+- Response data
+- User analytics or telemetry
+- Any personally identifiable information
+
+## Permissions Usage
+
+We request these Chrome permissions for core functionality:
+
+### `declarativeNetRequest`
+**Purpose:** Inject authentication headers into matching HTTP requests  
+**Data access:** None - only modifies outgoing request headers based on your rules
+
+### `storage`
+**Purpose:** Store your authentication rules locally  
+**Data access:** Only your configured rules, stored encrypted by Chrome
+
+### `tabs`
+**Purpose:** Detect current page URL for context-aware UI  
+**Data access:** Only current tab URL to show relevant rules
+
+### `sidePanel`
+**Purpose:** Display the extension UI  
+**Data access:** None - just displays the interface
+
+### `webRequest`
+**Purpose:** Track request statistics (counts only)  
+**Data access:** Only request URLs for counting, no content
+
+### `host_permissions (<all_urls>)`
+**Purpose:** Allow header injection on domains you configure  
+**Data access:** Only requests matching your patterns
+
+## Third-Party Services
+
+This extension does **NOT** use:
+- Analytics services
+- Crash reporting
+- Telemetry
+- External APIs
+- Ad networks
+- Tracking pixels
+
+## Open Source
+
+This extension is open source. You can:
+- [Review the source code](https://github.com/prosdevlab/auth-header-injector)
+- [Audit how data is handled](https://github.com/prosdevlab/auth-header-injector/tree/main/src)
+- [Report privacy concerns](https://github.com/prosdevlab/auth-header-injector/issues)
+
+## Security
+
+- Tokens are stored in Chrome's encrypted sync storage
+- Never logged or exposed except to your configured domains
+- Visible in the UI only when you explicitly choose to show them
+- Transmitted only to domains matching your patterns
+
+## Changes to This Policy
+
+We may update this privacy policy from time to time. We will notify users of any material changes by:
+- Updating the "Last Updated" date
+- Posting a notice in the extension's GitHub repository
+- Creating a GitHub release note
+
+## Contact
+
+For privacy questions or concerns:
+- [Open an issue](https://github.com/prosdevlab/auth-header-injector/issues)
+- [Start a discussion](https://github.com/prosdevlab/auth-header-injector/discussions)
+- Email: [privacy concerns can be reported via GitHub]
+
+## Your Rights
+
+As a user, you have the right to:
+- View all data stored by the extension (in Chrome's DevTools → Application → Storage)
+- Delete all data (uninstall the extension or clear extension data)
+- Export your rules (manually copy from the extension UI)
+
+## Compliance
+
+This extension:
+- ✅ Complies with Chrome Web Store policies
+- ✅ Does not collect personal data (GDPR/CCPA N/A)
+- ✅ Stores data only locally on your device
+- ✅ Provides full transparency via open source code
+

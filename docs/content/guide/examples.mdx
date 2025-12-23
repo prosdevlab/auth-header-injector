@@ -1,0 +1,97 @@
+# Examples
+
+Real-world examples of Auth HI! configurations.
+
+## Multi-Environment API
+
+Configure different tokens for dev, staging, and production:
+
+```
+# Development
+Pattern: api.dev.example.com
+Token: dev_token_here
+Label: Dev API
+
+# Staging
+Pattern: api.staging.example.com
+Token: staging_token_here
+Label: Staging API
+
+# Production
+Pattern: api.example.com
+Token: prod_token_here
+Label: Production API
+```
+
+## GitHub Personal Access Token
+
+Access GitHub APIs with your PAT:
+
+```
+Pattern: *github.com
+Token: ghp_yourPersonalAccessToken
+Label: GitHub API
+```
+
+This covers:
+- `github.com/api/...`
+- `api.github.com/...`
+- `raw.githubusercontent.com/...`
+
+## Internal Company Services
+
+Match multiple internal services:
+
+```
+Pattern: *.company.internal
+Token: your_internal_token
+Label: Internal Services
+```
+
+Matches all internal subdomains but not the base domain.
+
+## Third-Party API with Multiple Endpoints
+
+```
+Pattern: *://api.service.com/*
+Token: your_api_key
+Label: Service API
+```
+
+Explicit scheme and path matching for precise control.
+
+## Testing Local Development
+
+```
+Pattern: localhost:3000
+Token: dev_token
+Label: Local API
+```
+
+Perfect for local development against your own API.
+
+## Multiple Rules for Same Domain
+
+You can have multiple rules that match the same domain. They'll all be applied:
+
+```
+# Rule 1: General API access
+Pattern: *api.example.com
+Token: general_token
+Label: Example API
+
+# Rule 2: Specific service
+Pattern: auth.api.example.com  
+Token: auth_service_token
+Label: Auth Service
+```
+
+Both rules will inject their tokens when matching requests occur.
+
+## Pro Tips
+
+1. **Use labels** - Make it easy to identify rules at a glance
+2. **Start broad** - Use `*domain.com` first, then narrow if needed
+3. **Test incrementally** - Add one rule, verify it works, then add more
+4. **Check the context bar** - Shows which rules are active for the current page
+

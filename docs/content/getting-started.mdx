@@ -1,0 +1,82 @@
+# Getting Started
+
+Get up and running with Auth HI! in minutes.
+
+## Installation
+
+### From Chrome Web Store
+
+> 🚀 **Coming Soon** - Extension is currently in review
+
+Once published, click "Add to Chrome" from the Chrome Web Store listing.
+
+### From Source
+
+If you want to build from source or contribute:
+
+```bash
+# Clone the repository
+git clone https://github.com/prosdevlab/auth-header-injector.git
+cd auth-header-injector
+
+# Install dependencies
+pnpm install
+
+# Build the extension
+pnpm build
+
+# Load in Chrome
+# 1. Open chrome://extensions/
+# 2. Enable "Developer mode"
+# 3. Click "Load unpacked"
+# 4. Select the `dist` folder
+```
+
+## First Steps
+
+### 1. Open the Side Panel
+
+Click the extension icon in your Chrome toolbar. The side panel will open on the right side of your browser.
+
+### 2. Enable the Extension
+
+Toggle the "Enable extension" switch at the top of the panel.
+
+### 3. Add Your First Rule
+
+Click "Add Rule" and fill in:
+
+- **Pattern**: URL pattern to match (e.g., `*.api.example.com`)
+- **Token**: Your Bearer token (just the token, not "Bearer ...")
+- **Label**: Optional friendly name (e.g., "Staging API")
+
+Click "Save" and you're done!
+
+### 4. Verify It's Working
+
+1. Navigate to a page that makes API calls matching your pattern
+2. Check the "Context Bar" at the top - it shows matched rules
+3. See request counts increase as API calls are intercepted
+4. Open DevTools → Network tab → Check request headers
+
+## Example: GitHub API
+
+Let's set up auth for GitHub's API:
+
+**Pattern**: `*github.com`  
+**Token**: `ghp_yourPersonalAccessToken`  
+**Label**: `GitHub API`
+
+Now any requests to `github.com` or `api.github.com` will include your auth token automatically!
+
+## Next Steps
+
+- Learn about [URL Pattern Matching](/guide/patterns)
+- Explore [Common Use Cases](/guide/examples)
+- Check out [Troubleshooting](/guide/troubleshooting) if something's not working
+
+## Need Help?
+
+- [GitHub Issues](https://github.com/prosdevlab/auth-header-injector/issues) - Report bugs
+- [GitHub Discussions](https://github.com/prosdevlab/auth-header-injector/discussions) - Ask questions
+
