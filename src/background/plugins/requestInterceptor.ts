@@ -169,7 +169,10 @@ export function requestInterceptorPlugin(plugin: Plugin, instance: any, _config:
             },
             condition: {
               urlFilter: authRule.pattern,
-              resourceTypes: [chrome.declarativeNetRequest.ResourceType.XMLHTTPREQUEST],
+              resourceTypes: [
+                chrome.declarativeNetRequest.ResourceType.XMLHTTPREQUEST,
+                chrome.declarativeNetRequest.ResourceType.OTHER,
+              ],
             },
           }));
 

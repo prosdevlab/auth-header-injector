@@ -49,6 +49,7 @@ global.chrome = {
     },
     ResourceType: {
       XMLHTTPREQUEST: 'xmlhttprequest',
+      OTHER: 'other',
     },
   },
 } as any;
@@ -61,10 +62,10 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Chrome {
     interface StorageMock {
-      get: ReturnType<typeof vi.fn<any, Promise<any>>>;
-      set: ReturnType<typeof vi.fn<any, Promise<void>>>;
-      remove: ReturnType<typeof vi.fn<any, Promise<void>>>;
-      clear: ReturnType<typeof vi.fn<any, Promise<void>>>;
+      get: ReturnType<typeof vi.fn>;
+      set: ReturnType<typeof vi.fn>;
+      remove: ReturnType<typeof vi.fn>;
+      clear: ReturnType<typeof vi.fn>;
     }
   }
 }

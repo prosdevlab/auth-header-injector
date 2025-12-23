@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import type { AuthRule } from '@/shared/types';
-import { ChevronDown, ChevronRight, Play, Plus, Shield, ShieldOff } from 'lucide-react';
+import { ChevronDown, ChevronRight, Play, Shield, ShieldOff } from 'lucide-react';
 import { useState } from 'react';
 import { RuleCard } from './RuleCard';
 
@@ -73,13 +73,11 @@ export function RulesList({
         </div>
         {!isRestricted && currentHostname && (
           <Button onClick={onAddRule} size="sm">
-            <Plus className="mr-2 h-4 w-4" />
             Add Rule for {currentHostname}
           </Button>
         )}
         {(isRestricted || !currentHostname) && (
           <Button onClick={onAddRule} size="sm" variant="outline">
-            <Plus className="mr-2 h-4 w-4" />
             Add New Rule
           </Button>
         )}
@@ -103,7 +101,6 @@ export function RulesList({
           </div>
           {currentHostname && (
             <Button onClick={onAddRule} size="sm">
-              <Plus className="mr-2 h-4 w-4" />
               Add Rule for {currentHostname}
             </Button>
           )}
@@ -139,7 +136,6 @@ export function RulesList({
       <div className="flex items-center justify-between">
         <p className="text-sm font-medium">Rules ({rules.length} total)</p>
         <Button onClick={onAddRule} size="sm">
-          <Plus className="mr-2 h-4 w-4" />
           Add Rule
         </Button>
       </div>
