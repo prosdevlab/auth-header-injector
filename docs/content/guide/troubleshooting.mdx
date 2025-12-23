@@ -1,0 +1,94 @@
+# Troubleshooting
+
+Common issues and how to fix them.
+
+## Rules Not Matching Requests
+
+**Problem:** You added a rule but don't see request counts increasing.
+
+**Solutions:**
+
+1. **Check your pattern** - Use `*domain.com` instead of `*.domain.com` if targeting the base domain
+2. **Ensure the rule is enabled** - Toggle should be ON in the rules list
+3. **Ensure extension is enabled** - Toggle at the top should be ON
+4. **Check Service Worker logs**:
+   - Go to `chrome://extensions`
+   - Click "Service Worker" under Auth HI!
+   - Navigate to your target site
+   - Look for `[Request Tracker]` logs
+5. **Verify the site makes API calls** - Some sites use GraphQL, WebSockets, or no external calls
+
+## Extension Not Injecting Headers
+
+**Problem:** Rules show as active but headers aren't being sent.
+
+**Solutions:**
+
+1. **Check for errors** - Go to `chrome://extensions` and look for error messages
+2. **Verify pattern syntax** - Test with `*://domain.com/*` for explicit matching
+3. **Check token format** - Should be just the token, NOT `Bearer {token}`
+4. **Inspect Network tab**:
+   - Open DevTools → Network
+   - Find a matching request
+   - Check Request Headers for `Authorization`
+5. **Some sites block extension headers** - Rare, but possible with strict CSP
+
+## Service Worker Crashes
+
+**Problem:** Extension stops working after a while.
+
+**Why this happens:**
+- Chrome kills idle service workers after ~30 seconds (normal behavior)
+- Extension auto-restarts on next event (opening panel, new request)
+
+**Solutions:**
+
+1. **This is usually normal** - Service workers are designed to sleep
+2. **Check for errors** in Service Worker console if persistent
+3. **Reload extension** - Go to `chrome://extensions` and click reload icon
+4. **Update Chrome** - Make sure you're on the latest version
+
+## Side Panel Won't Open
+
+**Problem:** Clicking extension icon doesn't open the side panel.
+
+**Solutions:**
+
+1. **Check Chrome version** - Side panel requires Chrome 114+
+2. **Reload the extension** - Go to `chrome://extensions` and reload
+3. **Check for errors** - Look for error badge on extension icon
+4. **Reinstall** - Remove and reinstall the extension
+
+## Request Counts Not Updating
+
+**Problem:** Rules show active but counts stay at 0.
+
+**Solutions:**
+
+1. **Refresh the side panel** - Close and reopen it
+2. **Check restricted pages** - Extensions can't track on `chrome://` or `chrome-extension://` pages
+3. **Verify webRequest permission** - Should be enabled (check manifest)
+
+## Pattern Validation Errors
+
+**Problem:** Can't save a rule due to validation error.
+
+**Common causes:**
+
+- Empty pattern
+- Empty token
+- Invalid characters in pattern
+- Duplicate pattern (already exists)
+
+**Solutions:**
+
+1. Use simple patterns first: `domain.com` or `*.domain.com`
+2. Avoid special characters except `*`, `.`, `/`, `:`, `-`
+3. Check for duplicate rules with same pattern
+
+## Still Having Issues?
+
+- [Report a bug](https://github.com/prosdevlab/auth-header-injector/issues) on GitHub
+- [Ask a question](https://github.com/prosdevlab/auth-header-injector/discussions) in Discussions
+- Check the [README](https://github.com/prosdevlab/auth-header-injector) for additional documentation
+

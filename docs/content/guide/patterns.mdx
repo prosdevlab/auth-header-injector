@@ -1,0 +1,118 @@
+# URL Pattern Matching
+
+Understanding how to write effective URL patterns is key to using Auth HI! effectively.
+
+## Pattern Syntax
+
+The extension uses Chrome's `urlFilter` syntax with wildcard support.
+
+### Basic Wildcards
+
+| Pattern | Matches |
+|---------|---------|
+| `*example.com` | Base domain + all subdomains |
+| `*.example.com` | **Only** subdomains (not base) |
+| `api.example.com` | Exact subdomain only |
+| `*://example.com/*` | Explicit scheme + path |
+
+## Common Patterns
+
+### Match Everything for a Domain
+
+```
+Pattern: *github.com
+```
+
+**Matches:**
+- `github.com/api/...`
+- `api.github.com/...`
+- `raw.githubusercontent.com/...`
+
+**Best for:** When you want to cover all services for a domain
+
+### Match Only Subdomains
+
+```
+Pattern: *.lytics.io
+```
+
+**Matches:**
+- `api.lytics.io/...`
+- `c.lytics.io/...`
+
+**Does NOT match:**
+- `lytics.io` (base domain)
+
+**Best for:** When the API is always on a subdomain
+
+### Match Specific Subdomain
+
+```
+Pattern: api.staging.example.com
+```
+
+**Matches:**
+- `api.staging.example.com/users`
+- `api.staging.example.com/auth`
+
+**Does NOT match:**
+- `api.example.com` (production)
+- `staging.example.com`
+
+**Best for:** Environment-specific configurations
+
+### Match with Explicit Scheme
+
+```
+Pattern: https://api.example.com/*
+```
+
+**Matches:**
+- `https://api.example.com/v1/users`
+- `https://api.example.com/auth`
+
+**Does NOT match:**
+- `http://api.example.com/...` (different scheme)
+
+**Best for:** When you need precise control
+
+## Common Mistakes
+
+### ❌ Using `*.domain.com` when you mean `*domain.com`
+
+```
+# This WON'T match the base domain
+Pattern: *.github.com
+Requests to: github.com/api/...  # Not matched!
+
+# This WILL match the base domain
+Pattern: *github.com
+Requests to: github.com/api/...  # Matched!
+```
+
+### ❌ Forgetting wildcards for paths
+
+```
+# This only matches the exact URL
+Pattern: api.example.com
+
+# This matches all paths
+Pattern: api.example.com/*
+OR
+Pattern: *://api.example.com/*
+```
+
+## Testing Your Patterns
+
+1. Add your rule in the extension
+2. Open `chrome://extensions`
+3. Click "Service Worker" under Auth HI!
+4. Navigate to your target site
+5. Look for log messages: `[Request Tracker] ✓ Matched pattern: ...`
+
+If you don't see matches, your pattern is likely too narrow. Try expanding it with wildcards.
+
+## Pattern Examples by Use Case
+
+See [Examples](/guide/examples) for real-world pattern configurations.
+

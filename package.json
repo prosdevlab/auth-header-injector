@@ -14,8 +14,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "prepare": "husky",
-    "lint-staged": "biome check --write --no-errors-on-unmatched"
+    "prepare": "husky"
   },
   "keywords": ["chrome-extension", "auth", "headers", "sdk-kit", "developer-tools"],
   "author": "ProsDevLab",
