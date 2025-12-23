@@ -17,19 +17,16 @@
     "prepare": "husky",
     "lint-staged": "biome check --write --no-errors-on-unmatched"
   },
-  "keywords": [
-    "chrome-extension",
-    "auth",
-    "headers",
-    "sdk-kit",
-    "developer-tools"
-  ],
+  "keywords": ["chrome-extension", "auth", "headers", "sdk-kit", "developer-tools"],
   "author": "ProsDevLab",
   "license": "MIT",
   "packageManager": "pnpm@10.14.0",
+  "engines": {
+    "node": ">=22"
+  },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
-    "@lytics/sdk-kit": "link:../sdk-kit/packages/core",
+    "@lytics/sdk-kit": "^0.1.1",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-slot": "^1.2.4",
