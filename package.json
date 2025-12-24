@@ -1,7 +1,7 @@
 {
   "name": "auth-header-injector",
   "version": "0.1.0",
-  "description": "Chrome extension for injecting auth headers into requests. Built with SDK Kit.",
+  "description": "Auth HI! - Chrome extension for injecting auth headers. Built with SDK Kit.",
   "type": "module",
   "scripts": {
     "dev": "vite",

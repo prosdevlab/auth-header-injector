@@ -19,12 +19,5 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
-    rollupOptions: {
-      output: {
-        // Use relative paths for assets
-        assetFileNames: '[name].[ext]',
-      },
-    },
   },
-  base: './', // Use relative paths
 });

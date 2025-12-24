@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Auth Header Injector",
+  "name": "Auth HI!",
   "version": "0.1.0",
-  "description": "Inject authentication headers into HTTP requests based on URL patterns",
+  "description": "Say hi to hassle-free auth headers. Inject authentication headers into requests based on URL patterns.",
   "icons": {
     "16": "icon-16.png",
     "48": "icon-48.png",
