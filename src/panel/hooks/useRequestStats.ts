@@ -1,3 +1,4 @@
+import { domainMatchesRulePattern } from '@/background/utils/requestTracking';
 import { useEffect, useState } from 'react';
 
 export interface DomainStats {
@@ -87,34 +88,11 @@ export function useRequestStats() {
   const getCountForRules = (rulePatterns: string[]): number => {
     if (rulePatterns.length === 0) return 0;
 
-    // Helper to check if a domain matches a rule pattern
-    const domainMatchesPattern = (domain: string, pattern: string): boolean => {
-      // Convert Chrome urlFilter pattern to regex for matching
-      // e.g., "*.lytics.io" → matches "api.lytics.io", "c.lytics.io"
-      // e.g., "*://api.example.com/*" → matches "api.example.com"
-
-      // Extract domain part from pattern
-      let domainPattern = pattern;
-
-      // Handle full URL patterns: *://domain/* or https://domain/*
-      const urlMatch = pattern.match(/^(?:\*|https?):\/\/([^/]+)/);
-      if (urlMatch?.[1]) {
-        domainPattern = urlMatch[1];
-      }
-
-      // Convert wildcard pattern to regex
-      // "*.lytics.io" → /^.*\.lytics\.io$/
-      const regexPattern = domainPattern
-        .replace(/\./g, '\\.') // Escape dots
-        .replace(/\*/g, '.*'); // Convert * to .*
-
-      const regex = new RegExp(`^${regexPattern}$`);
-      return regex.test(domain);
-    };
-
     // Sum counts for all tracked domains that match any of the rule patterns
     return Object.entries(stats).reduce((sum, [domain, stat]) => {
-      const matchesAnyRule = rulePatterns.some((pattern) => domainMatchesPattern(domain, pattern));
+      const matchesAnyRule = rulePatterns.some((pattern) =>
+        domainMatchesRulePattern(domain, pattern),
+      );
       return matchesAnyRule ? sum + stat.count : sum;
     }, 0);
   };
@@ -126,27 +104,51 @@ export function useRequestStats() {
   const getLastSeenForRules = (rulePatterns: string[]): number | null => {
     if (rulePatterns.length === 0) return null;
 
-    // Helper to check if a domain matches a rule pattern (reuse same logic)
-    const domainMatchesPattern = (domain: string, pattern: string): boolean => {
-      let domainPattern = pattern;
-      const urlMatch = pattern.match(/^(?:\*|https?):\/\/([^/]+)/);
-      if (urlMatch?.[1]) {
-        domainPattern = urlMatch[1];
-      }
-      const regexPattern = domainPattern.replace(/\./g, '\\.').replace(/\*/g, '.*');
-      const regex = new RegExp(`^${regexPattern}$`);
-      return regex.test(domain);
-    };
-
     // Find the most recent lastSeen timestamp
     let mostRecent: number | null = null;
     for (const [domain, stat] of Object.entries(stats)) {
-      const matchesAnyRule = rulePatterns.some((pattern) => domainMatchesPattern(domain, pattern));
+      const matchesAnyRule = rulePatterns.some((pattern) =>
+        domainMatchesRulePattern(domain, pattern),
+      );
       if (matchesAnyRule && (mostRecent === null || stat.lastSeen > mostRecent)) {
         mostRecent = stat.lastSeen;
       }
     }
     return mostRecent;
+  };
+
+  /**
+   * Get request count for a specific rule ID
+   * Sums up all requests from domains where this rule has intercepted requests
+   */
+  const getCountForRule = (ruleId: string): number => {
+    let total = 0;
+    for (const stat of Object.values(stats)) {
+      if (stat.ruleIds.includes(ruleId)) {
+        total += stat.count;
+      }
+    }
+    return total;
+  };
+
+  /**
+   * Get domain-level stats for domains matching the given rule patterns
+   * Returns array of domains with their stats, sorted by most recent
+   */
+  const getDomainsForRules = (
+    rulePatterns: string[],
+  ): Array<{ domain: string; stat: DomainStats }> => {
+    if (rulePatterns.length === 0) return [];
+
+    // Get domains that match any of the patterns
+    const matchingDomains = Object.entries(stats)
+      .filter(([domain]) =>
+        rulePatterns.some((pattern) => domainMatchesRulePattern(domain, pattern)),
+      )
+      .map(([domain, stat]) => ({ domain, stat }))
+      .sort((a, b) => b.stat.lastSeen - a.stat.lastSeen); // Most recent first
+
+    return matchingDomains;
   };
 
   /**
@@ -170,6 +172,8 @@ export function useRequestStats() {
     getActiveRuleIds,
     getCountForRules,
     getLastSeenForRules,
+    getCountForRule,
+    getDomainsForRules,
     clearStats,
   };
 }

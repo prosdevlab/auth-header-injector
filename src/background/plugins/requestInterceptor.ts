@@ -23,7 +23,36 @@
  */
 
 import type { Plugin } from '@lytics/sdk-kit';
-import type { AuthRule } from '../../shared/types';
+import type { AuthRule, AuthScheme } from '../../shared/types';
+import { calculateSpecificity } from '../utils/requestTracking';
+
+/**
+ * Build Authorization header value based on scheme
+ *
+ * @param scheme - Authentication scheme (defaults to 'Bearer')
+ * @param token - The authentication token
+ * @returns The Authorization header value
+ *
+ * @example
+ * buildAuthHeaderValue('Bearer', 'abc123') // 'Bearer abc123'
+ * buildAuthHeaderValue('Raw', 'abc123') // 'abc123'
+ * buildAuthHeaderValue('Basic', 'dXNlcm5hbWU6cGFzc3dvcmQ=') // 'Basic dXNlcm5hbWU6cGFzc3dvcmQ='
+ */
+function buildAuthHeaderValue(scheme: AuthScheme | undefined, token: string): string {
+  const authScheme = scheme || 'Bearer'; // Default to Bearer for backward compatibility
+
+  switch (authScheme) {
+    case 'Bearer':
+      return `Bearer ${token}`;
+    case 'Raw':
+      return token;
+    case 'Basic':
+      return `Basic ${token}`;
+    default:
+      // Fallback to Bearer for unknown schemes
+      return `Bearer ${token}`;
+  }
+}
 
 /**
  * Public API exposed by the Request Interceptor plugin
@@ -115,7 +144,8 @@ export interface RequestInterceptorPlugin {
  * - Auto-updates on storage changes
  * - Rejects >300 rules with error
  * - `set` operation (replaces existing auth header)
- * - All rules priority 1
+ * - Priority based on pattern specificity (more specific = higher priority)
+ *   When multiple rules match, the most specific pattern wins
  *
  * @param plugin - SDK Kit plugin capabilities
  * @param instance - SDK instance
@@ -154,27 +184,46 @@ export function requestInterceptorPlugin(plugin: Plugin, instance: any, _config:
           }
 
           // Convert auth rules to Chrome rules
-          const chromeRules = enabledRules.map((authRule, index) => ({
-            id: index + 1, // Chrome IDs are 1-based
-            priority: 1, // All rules same priority
-            action: {
-              type: 'modifyHeaders' as chrome.declarativeNetRequest.RuleActionType.MODIFY_HEADERS,
-              requestHeaders: [
-                {
-                  header: 'Authorization',
-                  operation: chrome.declarativeNetRequest.HeaderOperation.SET,
-                  value: `Bearer ${authRule.token}`,
-                },
-              ],
-            },
-            condition: {
-              urlFilter: authRule.pattern,
-              resourceTypes: [
-                chrome.declarativeNetRequest.ResourceType.XMLHTTPREQUEST,
-                chrome.declarativeNetRequest.ResourceType.OTHER,
-              ],
-            },
-          }));
+          // Sort by specificity (most specific first) for consistent ordering
+          // This ensures Chrome uses the most specific matching rule when multiple match
+          const sortedRules = [...enabledRules].sort((a, b) => {
+            const specificityA = calculateSpecificity(a.pattern);
+            const specificityB = calculateSpecificity(b.pattern);
+            return specificityB - specificityA; // Higher specificity first
+          });
+
+          // Chrome priorities: higher number = higher priority (executed first)
+          // Assign priorities based on specificity so more specific rules win
+          // Use range 1-1000+ to ensure positive priorities
+          // More specific patterns get higher priority (win when multiple match)
+          const chromeRules = sortedRules.map((authRule, index) => {
+            const specificity = calculateSpecificity(authRule.pattern);
+            // Convert specificity to priority (higher specificity = higher priority)
+            // Specificity can be negative for very broad patterns, so add 1000
+            const priority = 1000 + specificity;
+
+            return {
+              id: index + 1, // Chrome IDs are 1-based
+              priority,
+              action: {
+                type: 'modifyHeaders' as chrome.declarativeNetRequest.RuleActionType.MODIFY_HEADERS,
+                requestHeaders: [
+                  {
+                    header: 'Authorization',
+                    operation: chrome.declarativeNetRequest.HeaderOperation.SET,
+                    value: buildAuthHeaderValue(authRule.scheme, authRule.token),
+                  },
+                ],
+              },
+              condition: {
+                urlFilter: authRule.pattern,
+                resourceTypes: [
+                  chrome.declarativeNetRequest.ResourceType.XMLHTTPREQUEST,
+                  chrome.declarativeNetRequest.ResourceType.OTHER,
+                ],
+              },
+            };
+          });
 
           // Get existing rule IDs to remove
           const existingRules = await chrome.declarativeNetRequest.getDynamicRules();

@@ -72,21 +72,28 @@ Perfect for local development against your own API.
 
 ## Multiple Rules for Same Domain
 
-You can have multiple rules that match the same domain. They'll all be applied:
+You can have multiple rules that match the same domain. When multiple rules match, **the most specific pattern wins**:
 
 ```
-# Rule 1: General API access
-Pattern: *api.example.com
+# Rule 1: General API access (less specific)
+Pattern: *.api.example.com
 Token: general_token
+Scheme: Bearer
 Label: Example API
 
-# Rule 2: Specific service
+# Rule 2: Specific service (more specific - wins!)
 Pattern: auth.api.example.com  
 Token: auth_service_token
+Scheme: Bearer
 Label: Auth Service
 ```
 
-Both rules will inject their tokens when matching requests occur.
+When a request matches both patterns, Rule 2 wins because `auth.api.example.com` is more specific than `*.api.example.com`. The extension will show a warning when 2+ rules are active on the same page.
+
+**Pattern Specificity:**
+- More specific parts = higher priority
+- Fewer wildcards = higher priority
+- Example: `api.staging.example.com` > `*.example.com` > `*.com`
 
 ## Pro Tips
 

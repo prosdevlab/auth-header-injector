@@ -9,8 +9,15 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import type { AuthRule } from '@/shared/types';
+import type { AuthRule, AuthScheme } from '@/shared/types';
 import { useState } from 'react';
 
 interface RuleFormProps {
@@ -25,6 +32,7 @@ export function RuleForm({ open, onOpenChange, onSubmit, initialData, title }: R
   const [pattern, setPattern] = useState(initialData?.pattern || '');
   const [token, setToken] = useState(initialData?.token || '');
   const [label, setLabel] = useState(initialData?.label || '');
+  const [scheme, setScheme] = useState<AuthScheme>(initialData?.scheme || 'Bearer');
   const [enabled, setEnabled] = useState(initialData?.enabled ?? true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ pattern?: string; token?: string }>({});
@@ -34,6 +42,7 @@ export function RuleForm({ open, onOpenChange, onSubmit, initialData, title }: R
       setPattern(initialData?.pattern || '');
       setToken(initialData?.token || '');
       setLabel(initialData?.label || '');
+      setScheme(initialData?.scheme || 'Bearer');
       setEnabled(initialData?.enabled ?? true);
       setErrors({});
       onOpenChange(false);
@@ -71,6 +80,7 @@ export function RuleForm({ open, onOpenChange, onSubmit, initialData, title }: R
       const ruleData: Omit<AuthRule, 'id' | 'createdAt' | 'updatedAt'> = {
         pattern: pattern.trim(),
         token: token.trim(),
+        scheme: scheme || 'Bearer', // Default to Bearer if not set
         enabled,
       };
 
@@ -131,6 +141,31 @@ export function RuleForm({ open, onOpenChange, onSubmit, initialData, title }: R
               {errors.pattern && <p className="text-xs text-destructive">{errors.pattern}</p>}
             </div>
 
+            {/* Scheme Selector */}
+            <div className="space-y-2">
+              <Label htmlFor="scheme">Auth Scheme *</Label>
+              <Select
+                value={scheme}
+                onValueChange={(value) => setScheme(value as AuthScheme)}
+                disabled={isSubmitting}
+              >
+                <SelectTrigger id="scheme">
+                  <SelectValue placeholder="Select auth scheme" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Bearer">Bearer</SelectItem>
+                  <SelectItem value="Raw">Raw Token</SelectItem>
+                  <SelectItem value="Basic">Basic</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                {scheme === 'Bearer' && 'Will be sent as: Authorization: Bearer {token}'}
+                {scheme === 'Raw' && 'Will be sent as: Authorization: {token}'}
+                {scheme === 'Basic' &&
+                  'Will be sent as: Authorization: Basic {token} (token should be base64-encoded)'}
+              </p>
+            </div>
+
             {/* Token Input */}
             <div className="space-y-2">
               <Label htmlFor="token">Authorization Token *</Label>
@@ -142,9 +177,6 @@ export function RuleForm({ open, onOpenChange, onSubmit, initialData, title }: R
                 onChange={(e) => setToken(e.target.value)}
                 disabled={isSubmitting}
               />
-              <p className="text-xs text-muted-foreground">
-                Will be sent as: Authorization: Bearer {'{token}'}
-              </p>
               {errors.token && <p className="text-xs text-destructive">{errors.token}</p>}
             </div>
 

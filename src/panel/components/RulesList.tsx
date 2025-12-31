@@ -10,6 +10,7 @@ interface RulesListProps {
   isEnabled: boolean;
   isRestricted: boolean;
   currentHostname: string | null;
+  getCountForRule?: (ruleId: string) => number;
   onAddRule: () => void;
   onEditRule: (rule: AuthRule) => void;
   onDeleteRule: (id: string) => void;
@@ -29,6 +30,7 @@ export function RulesList({
   isEnabled,
   isRestricted,
   currentHostname,
+  getCountForRule,
   onAddRule,
   onEditRule,
   onDeleteRule,
@@ -113,17 +115,21 @@ export function RulesList({
               Your Rules ({rules.length})
             </p>
           </div>
-          {rules.map((rule) => (
-            <RuleCard
-              key={rule.id}
-              rule={rule}
-              isMatched={false}
-              onToggle={(enabled) => onToggleRule(rule.id, enabled)}
-              onEdit={() => onEditRule(rule)}
-              onDelete={() => onDeleteRule(rule.id)}
-              onCopyToken={() => onCopyToken(rule.token)}
-            />
-          ))}
+          {rules.map((rule) => {
+            const requestCount = getCountForRule?.(rule.id);
+            return (
+              <RuleCard
+                key={rule.id}
+                rule={rule}
+                isMatched={false}
+                {...(requestCount !== undefined && { requestCount })}
+                onToggle={(enabled) => onToggleRule(rule.id, enabled)}
+                onEdit={() => onEditRule(rule)}
+                onDelete={() => onDeleteRule(rule.id)}
+                onCopyToken={() => onCopyToken(rule.token)}
+              />
+            );
+          })}
         </div>
       </div>
     );
@@ -149,17 +155,21 @@ export function RulesList({
               For This Page ({matchedRules.length})
             </p>
           </div>
-          {matchedRules.map((rule) => (
-            <RuleCard
-              key={rule.id}
-              rule={rule}
-              isMatched={true}
-              onToggle={(enabled) => onToggleRule(rule.id, enabled)}
-              onEdit={() => onEditRule(rule)}
-              onDelete={() => onDeleteRule(rule.id)}
-              onCopyToken={() => onCopyToken(rule.token)}
-            />
-          ))}
+          {matchedRules.map((rule) => {
+            const requestCount = getCountForRule?.(rule.id);
+            return (
+              <RuleCard
+                key={rule.id}
+                rule={rule}
+                isMatched={true}
+                {...(requestCount !== undefined && { requestCount })}
+                onToggle={(enabled) => onToggleRule(rule.id, enabled)}
+                onEdit={() => onEditRule(rule)}
+                onDelete={() => onDeleteRule(rule.id)}
+                onCopyToken={() => onCopyToken(rule.token)}
+              />
+            );
+          })}
         </div>
       )}
 
@@ -181,17 +191,21 @@ export function RulesList({
             </p>
           </button>
           {isOtherRulesExpanded &&
-            otherRules.map((rule) => (
-              <RuleCard
-                key={rule.id}
-                rule={rule}
-                isMatched={false}
-                onToggle={(enabled) => onToggleRule(rule.id, enabled)}
-                onEdit={() => onEditRule(rule)}
-                onDelete={() => onDeleteRule(rule.id)}
-                onCopyToken={() => onCopyToken(rule.token)}
-              />
-            ))}
+            otherRules.map((rule) => {
+              const requestCount = getCountForRule?.(rule.id);
+              return (
+                <RuleCard
+                  key={rule.id}
+                  rule={rule}
+                  isMatched={false}
+                  {...(requestCount !== undefined && { requestCount })}
+                  onToggle={(enabled) => onToggleRule(rule.id, enabled)}
+                  onEdit={() => onEditRule(rule)}
+                  onDelete={() => onDeleteRule(rule.id)}
+                  onCopyToken={() => onCopyToken(rule.token)}
+                />
+              );
+            })}
         </div>
       )}
     </div>

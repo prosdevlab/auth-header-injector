@@ -1,6 +1,8 @@
-import { formatDistanceToNow } from 'date-fns';
-import { Activity, Globe } from 'lucide-react';
 import type { CurrentTab } from '../hooks/useCurrentTab';
+import type { DomainStats } from '../hooks/useRequestStats';
+import { ActivityStatus } from './ActivityStatus';
+import { MultipleRulesWarning } from './MultipleRulesWarning';
+import { PageInfo } from './PageInfo';
 
 interface ContextBarProps {
   tab: CurrentTab;
@@ -8,6 +10,8 @@ interface ContextBarProps {
   requestCount: number; // Total requests intercepted for these rules
   lastSeen: number | null; // Most recent request timestamp
   isEnabled: boolean; // Whether extension is enabled
+  activeRulesCount?: number; // Number of rules that have intercepted requests for current page
+  domains?: Array<{ domain: string; stat: DomainStats }>; // Domain-level stats for breakdown
   loading?: boolean;
 }
 
@@ -21,6 +25,8 @@ export function ContextBar({
   requestCount,
   lastSeen,
   isEnabled,
+  activeRulesCount = 0,
+  domains,
   loading,
 }: ContextBarProps) {
   // Extract org name from hostname (e.g., "lytics" from "app.lytics.com")
@@ -37,43 +43,31 @@ export function ContextBar({
   };
 
   const orgName = getOrgName(tab.url);
+  const hasMultipleActiveRules = activeRulesCount >= 2;
 
   return (
     <div className="sticky top-[60px] z-10 border-b border-border bg-muted/30 backdrop-blur-sm p-3">
       <div className="px-4 py-3 space-y-2">
+        {/* Multiple Rules Warning */}
+        {activeRulesCount > 0 &&
+          !loading &&
+          !tab.isRestricted &&
+          isEnabled &&
+          hasMultipleActiveRules && <MultipleRulesWarning activeRulesCount={activeRulesCount} />}
         {/* Page/Org Name */}
-        <div className="flex items-center gap-2">
-          <Globe className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-          {loading ? (
-            <span className="text-sm text-muted-foreground">Loading...</span>
-          ) : tab.isRestricted ? (
-            <span className="text-sm text-destructive">Not available on this page</span>
-          ) : (
-            <span className="text-sm font-medium text-foreground truncate">
-              {orgName || 'No page'}
-            </span>
-          )}
-        </div>
+        <PageInfo
+          orgName={orgName ?? null}
+          isLoading={loading ?? false}
+          isRestricted={tab.isRestricted}
+        />
 
         {/* Activity Status */}
         {!loading && !tab.isRestricted && isEnabled && matchCount > 0 && (
-          <div className="flex items-center gap-2 pl-6">
-            {requestCount > 0 ? (
-              <>
-                <Activity className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs font-medium text-primary">
-                  {requestCount} request{requestCount === 1 ? '' : 's'}
-                  {lastSeen && (
-                    <span className="text-muted-foreground ml-1">
-                      • {formatDistanceToNow(lastSeen, { addSuffix: true })}
-                    </span>
-                  )}
-                </span>
-              </>
-            ) : (
-              <span className="text-xs text-muted-foreground">No matching requests yet</span>
-            )}
-          </div>
+          <ActivityStatus
+            requestCount={requestCount}
+            lastSeen={lastSeen}
+            {...(domains !== undefined && { domains })}
+          />
         )}
       </div>
     </div>

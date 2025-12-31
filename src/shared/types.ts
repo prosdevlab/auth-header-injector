@@ -3,6 +3,11 @@
  */
 
 /**
+ * Authentication scheme types
+ */
+export type AuthScheme = 'Bearer' | 'Raw' | 'Basic';
+
+/**
  * Configuration for a single auth rule
  */
 export interface AuthRule {
@@ -10,6 +15,7 @@ export interface AuthRule {
   pattern: string;
   token: string;
   label?: string; // Optional friendly name like "Staging API" or "GitHub Dev"
+  scheme?: AuthScheme; // Authentication scheme (defaults to 'Bearer')
   enabled: boolean;
   createdAt: number;
   updatedAt: number;

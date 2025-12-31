@@ -25,6 +25,7 @@ describe('Request Interceptor Plugin', () => {
           id: '1',
           pattern: '*.example.com',
           token: 'token123',
+          scheme: 'Bearer',
           enabled: true,
           createdAt: Date.now(),
           updatedAt: Date.now(),
@@ -33,6 +34,7 @@ describe('Request Interceptor Plugin', () => {
           id: '2',
           pattern: 'api.test.com',
           token: 'token456',
+          scheme: 'Bearer',
           enabled: true,
           createdAt: Date.now(),
           updatedAt: Date.now(),
@@ -45,47 +47,248 @@ describe('Request Interceptor Plugin', () => {
 
       await (sdk as any).interceptor.enable();
 
-      expect(chrome.declarativeNetRequest.updateDynamicRules).toHaveBeenCalledWith({
-        removeRuleIds: [],
-        addRules: [
-          {
-            id: 1,
-            priority: 1,
-            action: {
-              type: 'modifyHeaders',
-              requestHeaders: [
-                {
-                  header: 'Authorization',
-                  operation: 'set',
-                  value: 'Bearer token123',
-                },
-              ],
-            },
-            condition: {
-              urlFilter: '*.example.com',
-              resourceTypes: ['xmlhttprequest', 'other'],
-            },
-          },
-          {
-            id: 2,
-            priority: 1,
-            action: {
-              type: 'modifyHeaders',
-              requestHeaders: [
-                {
-                  header: 'Authorization',
-                  operation: 'set',
-                  value: 'Bearer token456',
-                },
-              ],
-            },
-            condition: {
-              urlFilter: 'api.test.com',
-              resourceTypes: ['xmlhttprequest', 'other'],
-            },
-          },
-        ],
-      });
+      const call = vi.mocked(chrome.declarativeNetRequest.updateDynamicRules).mock.calls[0]?.[0];
+      expect(call).toBeDefined();
+      expect(call?.removeRuleIds).toEqual([]);
+      expect(call?.addRules).toHaveLength(2);
+
+      // Rules are sorted by specificity (most specific first)
+      // api.test.com (30) should come before *.example.com (19)
+      const apiTestRule = call?.addRules?.find((r) => r.condition.urlFilter === 'api.test.com');
+      const wildcardRule = call?.addRules?.find((r) => r.condition.urlFilter === '*.example.com');
+
+      expect(apiTestRule?.action.requestHeaders?.[0]?.value).toBe('Bearer token456');
+      expect(apiTestRule?.priority).toBeGreaterThan(wildcardRule?.priority ?? 0);
+      expect(wildcardRule?.action.requestHeaders?.[0]?.value).toBe('Bearer token123');
+    });
+
+    it('should use Bearer scheme by default when scheme is not specified', async () => {
+      const mockRules: AuthRule[] = [
+        {
+          id: '1',
+          pattern: '*.example.com',
+          token: 'token123',
+          // No scheme field - should default to Bearer
+          enabled: true,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        },
+      ];
+
+      (vi.mocked(chrome.storage.sync.get) as any).mockResolvedValue({ auth_rules: mockRules });
+      (vi.mocked(chrome.declarativeNetRequest.getDynamicRules) as any).mockResolvedValue([]);
+      (vi.mocked(chrome.declarativeNetRequest.updateDynamicRules) as any).mockResolvedValue();
+
+      await (sdk as any).interceptor.enable();
+
+      const call = vi.mocked(chrome.declarativeNetRequest.updateDynamicRules).mock.calls[0]?.[0];
+      expect(call).toBeDefined();
+      expect(call?.addRules?.[0]?.action.requestHeaders?.[0]?.value).toBe('Bearer token123');
+    });
+
+    it('should use Raw scheme when specified', async () => {
+      const mockRules: AuthRule[] = [
+        {
+          id: '1',
+          pattern: '*.lytics.io',
+          token: 'lytics_token_123',
+          scheme: 'Raw',
+          enabled: true,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        },
+      ];
+
+      (vi.mocked(chrome.storage.sync.get) as any).mockResolvedValue({ auth_rules: mockRules });
+      (vi.mocked(chrome.declarativeNetRequest.getDynamicRules) as any).mockResolvedValue([]);
+      (vi.mocked(chrome.declarativeNetRequest.updateDynamicRules) as any).mockResolvedValue();
+
+      await (sdk as any).interceptor.enable();
+
+      const call = vi.mocked(chrome.declarativeNetRequest.updateDynamicRules).mock.calls[0]?.[0];
+      expect(call).toBeDefined();
+      expect(call?.addRules?.[0]?.action.requestHeaders?.[0]?.value).toBe('lytics_token_123');
+    });
+
+    it('should use Basic scheme when specified', async () => {
+      const mockRules: AuthRule[] = [
+        {
+          id: '1',
+          pattern: 'api.example.com',
+          token: 'dXNlcm5hbWU6cGFzc3dvcmQ=',
+          scheme: 'Basic',
+          enabled: true,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        },
+      ];
+
+      (vi.mocked(chrome.storage.sync.get) as any).mockResolvedValue({ auth_rules: mockRules });
+      (vi.mocked(chrome.declarativeNetRequest.getDynamicRules) as any).mockResolvedValue([]);
+      (vi.mocked(chrome.declarativeNetRequest.updateDynamicRules) as any).mockResolvedValue();
+
+      await (sdk as any).interceptor.enable();
+
+      const call = vi.mocked(chrome.declarativeNetRequest.updateDynamicRules).mock.calls[0]?.[0];
+      expect(call).toBeDefined();
+      expect(call?.addRules?.[0]?.action.requestHeaders?.[0]?.value).toBe(
+        'Basic dXNlcm5hbWU6cGFzc3dvcmQ=',
+      );
+    });
+
+    it('should handle multiple rules with different schemes', async () => {
+      const mockRules: AuthRule[] = [
+        {
+          id: '1',
+          pattern: '*.example.com',
+          token: 'bearer_token',
+          scheme: 'Bearer',
+          enabled: true,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        },
+        {
+          id: '2',
+          pattern: '*.lytics.io',
+          token: 'raw_token',
+          scheme: 'Raw',
+          enabled: true,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        },
+        {
+          id: '3',
+          pattern: 'api.basic.com',
+          token: 'base64token',
+          scheme: 'Basic',
+          enabled: true,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        },
+      ];
+
+      (vi.mocked(chrome.storage.sync.get) as any).mockResolvedValue({ auth_rules: mockRules });
+      (vi.mocked(chrome.declarativeNetRequest.getDynamicRules) as any).mockResolvedValue([]);
+      (vi.mocked(chrome.declarativeNetRequest.updateDynamicRules) as any).mockResolvedValue();
+
+      await (sdk as any).interceptor.enable();
+
+      const call = vi.mocked(chrome.declarativeNetRequest.updateDynamicRules).mock.calls[0]?.[0];
+      expect(call).toBeDefined();
+      expect(call?.addRules).toHaveLength(3);
+
+      // Rules are sorted by specificity (most specific first)
+      // api.basic.com (30) > *.example.com (19) = *.lytics.io (19)
+      const basicRule = call?.addRules?.find((r) => r.condition.urlFilter === 'api.basic.com');
+      const exampleRule = call?.addRules?.find((r) => r.condition.urlFilter === '*.example.com');
+      const lyticsRule = call?.addRules?.find((r) => r.condition.urlFilter === '*.lytics.io');
+
+      expect(basicRule?.action.requestHeaders?.[0]?.value).toBe('Basic base64token');
+      expect(exampleRule?.action.requestHeaders?.[0]?.value).toBe('Bearer bearer_token');
+      expect(lyticsRule?.action.requestHeaders?.[0]?.value).toBe('raw_token');
+
+      // Most specific should have highest priority
+      expect(basicRule?.priority).toBeGreaterThan(exampleRule?.priority ?? 0);
+      expect(basicRule?.priority).toBeGreaterThan(lyticsRule?.priority ?? 0);
+    });
+
+    it('should assign priorities based on pattern specificity', async () => {
+      const mockRules: AuthRule[] = [
+        {
+          id: '1',
+          pattern: '*.example.com', // Less specific
+          token: 'token1',
+          scheme: 'Bearer',
+          enabled: true,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        },
+        {
+          id: '2',
+          pattern: 'api.staging.example.com', // More specific
+          token: 'token2',
+          scheme: 'Bearer',
+          enabled: true,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        },
+      ];
+
+      (vi.mocked(chrome.storage.sync.get) as any).mockResolvedValue({ auth_rules: mockRules });
+      (vi.mocked(chrome.declarativeNetRequest.getDynamicRules) as any).mockResolvedValue([]);
+      (vi.mocked(chrome.declarativeNetRequest.updateDynamicRules) as any).mockResolvedValue();
+
+      await (sdk as any).interceptor.enable();
+
+      const call = vi.mocked(chrome.declarativeNetRequest.updateDynamicRules).mock.calls[0]?.[0];
+      expect(call).toBeDefined();
+      expect(call?.addRules).toHaveLength(2);
+
+      // More specific pattern should have higher priority
+      const specificPatternRule = call?.addRules?.find(
+        (r) => r.condition.urlFilter === 'api.staging.example.com',
+      );
+      const lessSpecificPatternRule = call?.addRules?.find(
+        (r) => r.condition.urlFilter === '*.example.com',
+      );
+
+      expect(specificPatternRule?.priority).toBeDefined();
+      expect(lessSpecificPatternRule?.priority).toBeDefined();
+      expect(specificPatternRule?.priority ?? 0).toBeGreaterThan(
+        lessSpecificPatternRule?.priority ?? 0,
+      );
+    });
+
+    it('should sort rules by specificity before assigning priorities', async () => {
+      const mockRules: AuthRule[] = [
+        {
+          id: '1',
+          pattern: '*.com', // Least specific
+          token: 'token1',
+          scheme: 'Bearer',
+          enabled: true,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        },
+        {
+          id: '2',
+          pattern: 'api.example.com', // Most specific
+          token: 'token2',
+          scheme: 'Bearer',
+          enabled: true,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        },
+        {
+          id: '3',
+          pattern: '*.example.com', // Medium specific
+          token: 'token3',
+          scheme: 'Bearer',
+          enabled: true,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        },
+      ];
+
+      (vi.mocked(chrome.storage.sync.get) as any).mockResolvedValue({ auth_rules: mockRules });
+      (vi.mocked(chrome.declarativeNetRequest.getDynamicRules) as any).mockResolvedValue([]);
+      (vi.mocked(chrome.declarativeNetRequest.updateDynamicRules) as any).mockResolvedValue();
+
+      await (sdk as any).interceptor.enable();
+
+      const call = vi.mocked(chrome.declarativeNetRequest.updateDynamicRules).mock.calls[0]?.[0];
+      expect(call).toBeDefined();
+      expect(call?.addRules).toHaveLength(3);
+
+      // Rules should be ordered by specificity (most specific first)
+      const priorities = call?.addRules?.map((r) => r.priority ?? 0) ?? [];
+      expect(priorities.length).toBe(3);
+      if (priorities[0] !== undefined && priorities[1] !== undefined) {
+        expect(priorities[0]).toBeGreaterThan(priorities[1]);
+      }
+      if (priorities[1] !== undefined && priorities[2] !== undefined) {
+        expect(priorities[1]).toBeGreaterThan(priorities[2]);
+      }
     });
 
     it('should filter out disabled rules', async () => {
@@ -94,6 +297,7 @@ describe('Request Interceptor Plugin', () => {
           id: '1',
           pattern: '*.example.com',
           token: 'token123',
+          scheme: 'Bearer',
           enabled: true,
           createdAt: Date.now(),
           updatedAt: Date.now(),
@@ -102,6 +306,7 @@ describe('Request Interceptor Plugin', () => {
           id: '2',
           pattern: 'api.test.com',
           token: 'token456',
+          scheme: 'Bearer',
           enabled: false,
           createdAt: Date.now(),
           updatedAt: Date.now(),
@@ -126,6 +331,7 @@ describe('Request Interceptor Plugin', () => {
           id: '1',
           pattern: '*.example.com',
           token: 'token123',
+          scheme: 'Bearer',
           enabled: true,
           createdAt: Date.now(),
           updatedAt: Date.now(),
@@ -161,6 +367,7 @@ describe('Request Interceptor Plugin', () => {
         id: `${i}`,
         pattern: `*.example${i}.com`,
         token: `token${i}`,
+        scheme: 'Bearer',
         enabled: true,
         createdAt: Date.now(),
         updatedAt: Date.now(),
@@ -223,6 +430,7 @@ describe('Request Interceptor Plugin', () => {
           id: '1',
           pattern: '*.example.com',
           token: 'token123',
+          scheme: 'Bearer',
           enabled: true,
           createdAt: Date.now(),
           updatedAt: Date.now(),

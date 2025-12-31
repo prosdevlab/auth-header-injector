@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Auth HI!",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Say hi to hassle-free auth headers. Inject authentication headers into requests based on URL patterns.",
   "icons": {
     "16": "icon-16.png",

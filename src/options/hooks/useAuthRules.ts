@@ -59,6 +59,7 @@ export function useAuthRules(): UseAuthRulesReturn {
     async (rule: Omit<AuthRule, 'id' | 'createdAt' | 'updatedAt'>) => {
       const newRule: AuthRule = {
         ...rule,
+        scheme: rule.scheme || 'Bearer', // Default to Bearer if not provided
         id: crypto.randomUUID(),
         createdAt: Date.now(),
         updatedAt: Date.now(),

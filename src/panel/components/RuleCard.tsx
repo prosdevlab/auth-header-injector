@@ -8,6 +8,7 @@ import { useState } from 'react';
 interface RuleCardProps {
   rule: AuthRule;
   isMatched: boolean;
+  requestCount?: number;
   onToggle: (enabled: boolean) => void;
   onEdit: () => void;
   onDelete: () => void;
@@ -23,6 +24,7 @@ interface RuleCardProps {
 export function RuleCard({
   rule,
   isMatched,
+  requestCount,
   onToggle,
   onEdit,
   onDelete,
@@ -32,7 +34,7 @@ export function RuleCard({
 
   return (
     <Card
-      className={`transition-colors ${
+      className={`transition-colors hover:border-primary/40 ${
         isMatched ? 'border-primary/20 bg-primary/5' : 'border-muted bg-muted/30'
       }`}
     >
@@ -54,7 +56,14 @@ export function RuleCard({
               </p>
             )}
             {/* Pattern */}
-            <p className="text-xs font-mono text-muted-foreground truncate">{rule.pattern}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-xs font-mono text-muted-foreground truncate">{rule.pattern}</p>
+              {requestCount !== undefined && requestCount > 0 && (
+                <span className="inline-flex items-center rounded-md bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary flex-shrink-0">
+                  {requestCount} request{requestCount === 1 ? '' : 's'}
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Status & Menu */}
@@ -82,10 +91,13 @@ export function RuleCard({
         {/* Expanded View (on demand) */}
         {isExpanded && (
           <div className="mt-3 space-y-2 border-t border-border pt-3">
-            {/* Token Preview */}
+            {/* Scheme & Token Preview */}
             <div className="flex items-center gap-2">
+              <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                {rule.scheme || 'Bearer'}
+              </span>
               <p className="text-xs text-muted-foreground flex-1 truncate font-mono">
-                Bearer {rule.token.slice(0, 8)}...{rule.token.slice(-4)}
+                {rule.token.slice(0, 8)}...{rule.token.slice(-4)}
               </p>
               <Button
                 variant="ghost"

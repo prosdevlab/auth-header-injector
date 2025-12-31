@@ -2,17 +2,30 @@ import type { AuthRule } from '@/shared/types';
 import { useMemo } from 'react';
 
 /**
- * Simple pattern matcher - mirrors the logic from Pattern Matcher Plugin
- * Converts Chrome urlFilter wildcards to regex
+ * Pattern matcher - mirrors the logic from Pattern Matcher Plugin
+ * Chrome's urlFilter matches substrings within URLs, not exact matches
  */
 function matchesPattern(pattern: string, url: string): boolean {
   if (!url) return false;
 
-  // Escape special regex characters except *
-  const regexPattern = pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*');
+  // Normalize to lowercase (Chrome is case-insensitive)
+  const normalizedUrl = url.toLowerCase();
+  const normalizedPattern = pattern.toLowerCase();
 
-  const regex = new RegExp(`^${regexPattern}$`, 'i');
-  return regex.test(url);
+  // Chrome's urlFilter uses substring matching with wildcard support
+  if (normalizedPattern.includes('*')) {
+    // Convert wildcard pattern to regex (substring match, not exact)
+    // Escape special regex characters except *
+    const regexPattern = normalizedPattern
+      .replace(/[.+?^${}()|[\]\\]/g, '\\$&') // Escape special chars
+      .replace(/\*/g, '.*'); // Convert * to .*
+
+    // No anchors - substring match like Chrome's urlFilter
+    const regex = new RegExp(regexPattern, 'i');
+    return regex.test(normalizedUrl);
+  }
+  // Simple substring match (Chrome's default behavior)
+  return normalizedUrl.includes(normalizedPattern);
 }
 
 /**

@@ -1,0 +1,89 @@
+# Auth Schemes
+
+Auth HI! supports multiple authentication header formats to work with different APIs.
+
+## Available Schemes
+
+### Bearer (Default)
+
+The most common authentication format. Adds `Authorization: Bearer {token}` header.
+
+**Use when:**
+- Working with REST APIs (GitHub, GitLab, most modern APIs)
+- Token is a JWT or API key
+- API expects standard Bearer token format
+
+**Example:**
+```
+Pattern: *.api.example.com
+Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Scheme: Bearer
+```
+
+**Result:** `Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
+
+### Raw
+
+Adds the token directly without any prefix. Adds `Authorization: {token}` header.
+
+**Use when:**
+- API expects raw token without "Bearer" prefix
+- Working with APIs that use custom token formats
+- Token format is non-standard
+
+**Example:**
+```
+Pattern: *.lytics.io
+Token: abc123xyz789
+Scheme: Raw
+```
+
+**Result:** `Authorization: abc123xyz789`
+
+### Basic
+
+Adds Basic authentication header. Adds `Authorization: Basic {token}` header.
+
+**Use when:**
+- Working with HTTP Basic Auth
+- Token is already base64-encoded (format: `base64(username:password)`)
+- API uses Basic authentication
+
+**Example:**
+```
+Pattern: api.example.com
+Token: dXNlcm5hbWU6cGFzc3dvcmQ=  (base64-encoded credentials)
+Scheme: Basic
+```
+
+**Result:** `Authorization: Basic dXNlcm5hbWU6cGFzc3dvcmQ=`
+
+**Note:** The token should already be base64-encoded. If you have `username:password`, encode it first:
+```javascript
+btoa('username:password') // Returns base64 string
+```
+
+## Choosing the Right Scheme
+
+| API Type | Recommended Scheme | Example |
+|----------|-------------------|---------|
+| GitHub/GitLab | Bearer | `ghp_...` or `glpat-...` |
+| JWT APIs | Bearer | `eyJhbGci...` |
+| Custom APIs | Raw | Check API docs |
+| HTTP Basic Auth | Basic | Base64-encoded credentials |
+| Lytics API | Raw | Raw token format |
+
+## Migration
+
+Existing rules created before scheme support default to **Bearer** for backward compatibility. You can edit any rule to change its scheme.
+
+## Troubleshooting
+
+**Problem:** API returns 401 even with correct token
+
+**Solutions:**
+1. Check if the API expects a different scheme (try Raw instead of Bearer)
+2. Verify token format matches API requirements
+3. For Basic auth, ensure token is base64-encoded
+4. Check API documentation for exact header format expected
+

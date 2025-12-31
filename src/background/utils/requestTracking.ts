@@ -1,9 +1,41 @@
 /**
- * Pure utility functions for request tracking
+ * Pure utility functions for request tracking and rule matching
  * These are extracted for testability
  */
 
 import type { AuthRule } from '@/shared/types';
+
+/**
+ * Calculate pattern specificity (higher = more specific)
+ * More specific patterns have fewer wildcards and more specific parts
+ *
+ * This is a pure function used to determine rule priority when multiple rules match.
+ * Higher specificity = higher priority = rule wins when multiple match.
+ *
+ * @param pattern - URL pattern (e.g., "*.api.com", "api.staging.com")
+ * @returns Specificity score (higher = more specific)
+ *
+ * @example
+ * calculateSpecificity("api.staging.com") // Higher (more specific)
+ * calculateSpecificity("*.api.com") // Lower (less specific)
+ * calculateSpecificity("*.com") // Lowest (least specific)
+ */
+export function calculateSpecificity(pattern: string): number {
+  // Remove protocol if present (e.g., "https://" or "*://")
+  const cleanPattern = pattern.replace(/^[^:]+:\/\//, '').replace(/\/.*$/, '');
+
+  // Count wildcards (fewer = more specific)
+  const wildcardCount = (cleanPattern.match(/\*/g) || []).length;
+
+  // Count specific parts (more = more specific)
+  const parts = cleanPattern.split('.');
+  const specificParts = parts.filter((p) => p !== '*' && p.length > 0).length;
+
+  // More specific = more parts, fewer wildcards
+  // Weight: parts * 10 - wildcards
+  // This ensures patterns with more specific parts rank higher
+  return specificParts * 10 - wildcardCount;
+}
 
 export interface DomainStats {
   count: number;
@@ -75,6 +107,24 @@ export function matchesHostname(hostname: string, domainPattern: string): boolea
   } catch {
     return false;
   }
+}
+
+/**
+ * Check if a domain matches a rule pattern
+ * Handles both simple domain patterns and full URL patterns with protocol
+ *
+ * @param domain - The domain to test (e.g., "api.lytics.io")
+ * @param rulePattern - The rule pattern (e.g., "*.lytics.io" or "*://*.lytics.io/*")
+ * @returns True if domain matches the pattern
+ *
+ * @example
+ * domainMatchesRulePattern("api.lytics.io", "*.lytics.io") // true
+ * domainMatchesRulePattern("api.lytics.io", "*://*.lytics.io/*") // true
+ * domainMatchesRulePattern("api.lytics.io", "https://api.example.com/*") // false
+ */
+export function domainMatchesRulePattern(domain: string, rulePattern: string): boolean {
+  const domainPattern = extractDomainPattern(rulePattern);
+  return matchesHostname(domain, domainPattern);
 }
 
 /**

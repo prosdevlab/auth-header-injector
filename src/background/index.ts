@@ -16,12 +16,29 @@ import {
   updateStats,
 } from './utils/requestTracking';
 
+/**
+ * Migrate existing rules to include scheme field (defaults to 'Bearer')
+ * This ensures backward compatibility with rules created before scheme support
+ *
+ * @param rules - Array of auth rules to migrate
+ * @returns Migrated rules with scheme field
+ */
+export function migrateRules(rules: AuthRule[]): AuthRule[] {
+  return rules.map((rule) => {
+    // If rule doesn't have scheme, add default 'Bearer'
+    if (!rule.scheme) {
+      return { ...rule, scheme: 'Bearer' };
+    }
+    return rule;
+  });
+}
+
 console.log('[Auth Header Injector] Initializing...');
 
 // Create SDK instance
 const sdk = new SDK({
   name: 'auth-header-injector',
-  version: '0.1.0',
+  version: '0.1.1',
 });
 
 // Register plugins
@@ -174,13 +191,22 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       switch (message.type) {
         case 'GET_RULES': {
           const rules: AuthRule[] | null = await sdkInstance.storage.get('auth_rules');
-          sendResponse({ success: true, data: rules || [] });
+          const migratedRules = migrateRules(rules || []);
+          // Save migrated rules back if migration occurred
+          const needsMigration = migratedRules.some(
+            (rule, index) => rule.scheme !== rules?.[index]?.scheme,
+          );
+          if (needsMigration && rules) {
+            await sdkInstance.storage.set('auth_rules', migratedRules);
+          }
+          sendResponse({ success: true, data: migratedRules });
           break;
         }
 
         case 'SET_RULES': {
           const rules = message.data as AuthRule[];
-          await sdkInstance.storage.set('auth_rules', rules);
+          const migratedRules = migrateRules(rules);
+          await sdkInstance.storage.set('auth_rules', migratedRules);
           sendResponse({ success: true });
           break;
         }

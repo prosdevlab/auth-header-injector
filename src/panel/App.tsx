@@ -18,6 +18,8 @@ export function App() {
     getActiveRuleIds,
     getCountForRules,
     getLastSeenForRules,
+    getCountForRule,
+    getDomainsForRules,
     loading: statsLoading,
   } = useRequestStats();
 
@@ -59,14 +61,18 @@ export function App() {
     return patternOrg === currentOrg;
   });
 
-  // Active = rules relevant to current page AND have intercepted requests
+  // Active = rules relevant to current page AND have intercepted requests AND are enabled
+  // Only enabled rules can intercept requests, so we filter out disabled ones
   const activeRuleIds = getActiveRuleIds();
-  const activeDisplayRules = relevantRules.filter((rule) => activeRuleIds.has(rule.id));
+  const activeDisplayRules = relevantRules.filter(
+    (rule) => rule.enabled && activeRuleIds.has(rule.id),
+  );
 
   // Get request count and timestamp for relevant rules
   const relevantPatterns = relevantRules.map((r) => r.pattern);
   const pageRequestCount = getCountForRules(relevantPatterns);
   const lastSeenTimestamp = getLastSeenForRules(relevantPatterns);
+  const domainStats = getDomainsForRules(relevantPatterns);
 
   // Handlers
   const handleAddRule = async (rule: Omit<AuthRule, 'id' | 'createdAt' | 'updatedAt'>) => {
@@ -116,6 +122,8 @@ export function App() {
         requestCount={pageRequestCount}
         lastSeen={lastSeenTimestamp}
         isEnabled={isEnabled}
+        activeRulesCount={activeDisplayRules.length}
+        domains={domainStats}
         loading={loading}
       />
 
@@ -126,18 +134,21 @@ export function App() {
             <p className="text-sm text-muted-foreground">Loading...</p>
           </div>
         ) : (
-          <RulesList
-            rules={rules}
-            matchedRules={activeDisplayRules}
-            isEnabled={isEnabled}
-            isRestricted={tab.isRestricted}
-            currentHostname={currentHostname}
-            onAddRule={() => setIsFormOpen(true)}
-            onEditRule={(rule) => setEditingRule(rule)}
-            onDeleteRule={deleteRule}
-            onToggleRule={(id, enabled) => updateRule(id, { enabled })}
-            onCopyToken={handleCopyToken}
-          />
+          <>
+            <RulesList
+              rules={rules}
+              matchedRules={activeDisplayRules}
+              isEnabled={isEnabled}
+              isRestricted={tab.isRestricted}
+              currentHostname={currentHostname}
+              getCountForRule={getCountForRule}
+              onAddRule={() => setIsFormOpen(true)}
+              onEditRule={(rule) => setEditingRule(rule)}
+              onDeleteRule={deleteRule}
+              onToggleRule={(id, enabled) => updateRule(id, { enabled })}
+              onCopyToken={handleCopyToken}
+            />
+          </>
         )}
       </div>
 

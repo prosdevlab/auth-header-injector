@@ -47,17 +47,24 @@ Toggle the "Enable extension" switch at the top of the panel.
 Click "Add Rule" and fill in:
 
 - **Pattern**: URL pattern to match (e.g., `*.api.example.com`)
-- **Token**: Your Bearer token (just the token, not "Bearer ...")
+- **Token**: Your authentication token
+- **Scheme**: Choose Bearer (default), Raw, or Basic
 - **Label**: Optional friendly name (e.g., "Staging API")
 
 Click "Save" and you're done!
 
+**Auth Schemes:**
+- **Bearer**: Adds `Authorization: Bearer {token}` header (most common)
+- **Raw**: Adds `Authorization: {token}` header (for APIs expecting raw tokens)
+- **Basic**: Adds `Authorization: Basic {token}` header (token should be base64-encoded)
+
 ### 4. Verify It's Working
 
 1. Navigate to a page that makes API calls matching your pattern
-2. Check the "Context Bar" at the top - it shows matched rules
+2. Check the "Context Bar" at the top - it shows matched rules and request counts
 3. See request counts increase as API calls are intercepted
-4. Open DevTools → Network tab → Check request headers
+4. Click the request count to expand and see domain-level breakdown
+5. Open DevTools → Network tab → Check request headers
 
 ## Example: GitHub API
 

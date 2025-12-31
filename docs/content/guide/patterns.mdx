@@ -102,6 +102,24 @@ OR
 Pattern: *://api.example.com/*
 ```
 
+## Rule Precedence
+
+When multiple rules match the same URL, the **most specific pattern wins**. Specificity is calculated based on:
+
+- **Number of specific parts** (more = more specific)
+- **Number of wildcards** (fewer = more specific)
+
+**Example:**
+```
+Pattern: api.staging.example.com  (specificity: 30)
+Pattern: *.example.com            (specificity: 19)
+Pattern: *.com                    (specificity: -1)
+```
+
+If all three match a request to `api.staging.example.com`, the first rule wins.
+
+The extension shows a warning in the Context Bar when 2+ rules are active on the same page, so you know which rule is being used.
+
 ## Testing Your Patterns
 
 1. Add your rule in the extension

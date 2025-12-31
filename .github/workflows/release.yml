@@ -42,20 +42,13 @@ jobs:
       - name: Build
         run: pnpm build
       
-      - name: Get version from package.json
-        id: package_version
-        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
-      
       - name: Create extension zip
-        run: |
-          cd dist
-          zip -r ../auth-header-injector-${{ steps.package_version.outputs.version }}.zip .
-          cd ..
+        run: pnpm package
       
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: auth-header-injector-${{ steps.package_version.outputs.version }}.zip
+          files: auth-hi-*.zip
           generate_release_notes: true
           draft: false
           prerelease: false

@@ -52,6 +52,26 @@ global.chrome = {
       OTHER: 'other',
     },
   },
+  webRequest: {
+    onBeforeRequest: {
+      addListener: vi.fn() as any,
+      removeListener: vi.fn() as any,
+      hasListener: vi.fn().mockReturnValue(false) as any,
+    },
+  },
+  action: {
+    onClicked: {
+      addListener: vi.fn() as any,
+    },
+  },
+  runtime: {
+    onMessage: {
+      addListener: vi.fn() as any,
+    },
+  },
+  sidePanel: {
+    open: vi.fn().mockResolvedValue(undefined) as any,
+  },
 } as any;
 
 /**

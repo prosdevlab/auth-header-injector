@@ -49,10 +49,13 @@ export function RuleCard({ rule, onEdit, onDelete, onToggle }: RuleCardProps) {
             <div className="mt-1 font-mono text-sm">{rule.pattern}</div>
           </div>
 
-          {/* Token */}
+          {/* Scheme & Token */}
           <div>
-            <div className="text-sm font-medium text-muted-foreground">Token</div>
+            <div className="text-sm font-medium text-muted-foreground">Auth Scheme & Token</div>
             <div className="mt-1 flex items-center gap-2">
+              <span className="inline-flex items-center rounded-md bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                {rule.scheme || 'Bearer'}
+              </span>
               <code className="text-sm">{showToken ? rule.token : maskedToken}</code>
               <Button
                 variant="ghost"
